@@ -1,14 +1,16 @@
 import * as express from 'express';
-import request from 'request';
+import * as request from 'request';
 import * as queryString from 'query-string';
 import * as graphqlHTTP from 'express-graphql';
 import { schema } from './schema';
-
+import * as bodyParser from 'body-parser';
+import * as cors from 'cors';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
 let app = express();
-
+app.use(bodyParser.json());
+app.use(cors());
 app.use(
   '/graphql',
   graphqlHTTP({
@@ -17,19 +19,30 @@ app.use(
   }),
 );
 
-let redirect_uri =
+const scopes = [
+  'user-read-private',
+  'user-read-email',
+  'user-read-playback-state',
+];
+const clientId = process.env.SPOTIFY_CLIENT_ID;
+const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+const state = 'fix-this-later';
+const redirect_uri =
   process.env.SPOTIFY_REDIRECT_URI || 'http://localhost:8888/callback';
 
-app.get('/login', (req, res) => {
-  res.redirect(
-    'https://accounts.spotify.com/authorize?' +
+app.get('/spotifyAuthorizeUrl', (req, res: any) => {
+  res.json({
+    spotify_authorize_url:
+      'https://accounts.spotify.com/authorize?' +
       queryString.stringify({
         response_type: 'code',
-        client_id: process.env.SPOTIFY_CLIENT_ID,
-        scope: 'user-read-private user-read-email user-read-playback-state',
+        client_id: clientId,
+        scope: scopes.join(' '),
         redirect_uri,
+        state,
+        show_dialog: true,
       }),
-  );
+  });
 });
 
 app.get('/callback', (req, res) => {
@@ -53,17 +66,42 @@ app.get('/callback', (req, res) => {
     json: true,
   };
   request.post(authOptions, (error, response, body) => {
-    var access_token = body.access_token;
-    var refresh_token = body.refresh_token;
-    console.log(body);
-    let uri = process.env.FRONTEND_URI || 'http://localhost:3000';
+    const uri = process.env.FRONTEND_URI || 'http://localhost:3000';
     res.redirect(
-      uri + '?access_token=' + access_token + '&refresh_token=' + refresh_token,
+      uri +
+        '?' +
+        queryString.stringify({
+          access_token: body.access_token,
+          refresh_token: body.refresh_token,
+          expires_in: body.expires_in,
+        }),
     );
   });
 });
 
-app.post('/refreshAccessToken', (req, res) => {});
+app.get('/refreshAccessToken', (req, res) => {
+  let authOptions = {
+    url: 'https://accounts.spotify.com/api/token',
+    form: {
+      grant_type: 'refresh_token',
+      refresh_token: req.query.refresh_token,
+    },
+    headers: {
+      Authorization:
+        'Basic ' +
+        new Buffer(
+          process.env.SPOTIFY_CLIENT_ID +
+            ':' +
+            process.env.SPOTIFY_CLIENT_SECRET,
+        ).toString('base64'),
+    },
+    json: true,
+  };
+
+  request.post(authOptions, (error, response, body) => {
+    res.json(body);
+  });
+});
 
 let port = process.env.PORT || 8888;
 console.log('Server running on port ' + port);
