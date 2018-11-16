@@ -2,18 +2,12 @@ import * as express from 'express';
 import request from 'request';
 import * as queryString from 'query-string';
 import * as graphqlHTTP from 'express-graphql';
-import { makeExecutableSchema } from 'graphql-tools';
-import { typeDefs } from './schema';
-import resolvers from './resolvers';
+import { schema } from './schema';
 
-require('dotenv').config();
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 let app = express();
-
-const schema = makeExecutableSchema({
-  typeDefs,
-  resolvers,
-});
 
 app.use(
   '/graphql',
