@@ -1,7 +1,9 @@
 const resolvers = {
   Query: {
     authors() {
-      return authors;
+      return {};
     },
   },
 };
+
+export default resolvers;

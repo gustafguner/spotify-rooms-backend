@@ -1,10 +1,11 @@
 import * as express from 'express';
 import request from 'request';
-const querystring = require('querystring');
-const graphqlHTTP = require('express-graphql');
-const { makeExecutableSchema } = require('graphql-tools');
-const typeDefs = require('./schema');
-const resolvers = require('./resolvers');
+import * as queryString from 'query-string';
+import * as graphqlHTTP from 'express-graphql';
+import { makeExecutableSchema } from 'graphql-tools';
+import { typeDefs } from './schema';
+import resolvers from './resolvers';
+
 require('dotenv').config();
 
 let app = express();
@@ -28,7 +29,7 @@ let redirect_uri =
 app.get('/login', (req, res) => {
   res.redirect(
     'https://accounts.spotify.com/authorize?' +
-      querystring.stringify({
+      queryString.stringify({
         response_type: 'code',
         client_id: process.env.SPOTIFY_CLIENT_ID,
         scope: 'user-read-private user-read-email user-read-playback-state',
