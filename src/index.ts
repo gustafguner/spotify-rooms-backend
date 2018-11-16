@@ -1,9 +1,26 @@
-let express = require('express');
-let request = require('request');
-let querystring = require('querystring');
+import * as express from 'express';
+import request from 'request';
+const querystring = require('querystring');
+const graphqlHTTP = require('express-graphql');
+const { makeExecutableSchema } = require('graphql-tools');
+const typeDefs = require('./schema');
+const resolvers = require('./resolvers');
 require('dotenv').config();
 
 let app = express();
+
+const schema = makeExecutableSchema({
+  typeDefs,
+  resolvers,
+});
+
+app.use(
+  '/graphql',
+  graphqlHTTP({
+    schema: schema,
+    graphiql: true,
+  }),
+);
 
 let redirect_uri =
   process.env.SPOTIFY_REDIRECT_URI || 'http://localhost:8888/callback';
@@ -42,10 +59,16 @@ app.get('/callback', (req, res) => {
   };
   request.post(authOptions, (error, response, body) => {
     var access_token = body.access_token;
+    var refresh_token = body.refresh_token;
+    console.log(body);
     let uri = process.env.FRONTEND_URI || 'http://localhost:3000';
-    res.redirect(uri + '?access_token=' + access_token);
+    res.redirect(
+      uri + '?access_token=' + access_token + '&refresh_token=' + refresh_token,
+    );
   });
 });
+
+app.post('/refreshAccessToken', (req, res) => {});
 
 let port = process.env.PORT || 8888;
 console.log('Server running on port ' + port);
