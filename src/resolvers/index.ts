@@ -1,7 +1,7 @@
 const resolvers = {
   Query: {
     authors() {
-      return {};
+      return [{ id: 199 }];
     },
   },
 };

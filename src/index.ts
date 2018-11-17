@@ -1,12 +1,31 @@
 import * as express from 'express';
+import * as mongoose from 'mongoose';
 import * as request from 'request';
 import * as queryString from 'query-string';
 import * as graphqlHTTP from 'express-graphql';
-import { schema } from './schema';
 import * as bodyParser from 'body-parser';
 import * as cors from 'cors';
 import * as dotenv from 'dotenv';
 dotenv.config();
+import { schema } from './schema';
+
+mongoose
+  .connect(
+    process.env.MONGODB_URL,
+    {
+      auth: {
+        user: process.env.MONGODB_USERNAME,
+        password: process.env.MONGODB_PASSWORD,
+      },
+    },
+  )
+  .then(() => console.log('Successfully connected to MongoDB'))
+  .catch((err) =>
+    console.error(
+      'An error occured when connecting to the MongoDB database: ',
+      err,
+    ),
+  );
 
 let app = express();
 app.use(bodyParser.json());
