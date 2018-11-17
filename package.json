@@ -6,7 +6,8 @@
   "author": "Gustaf Gunér <gustaf@guner.se>",
   "license": "MIT",
   "scripts": {
-    "watch": "nodemon --watch 'src/**/*.ts' --ignore 'src/**/*.spec.ts' --exec 'ts-node' src/index.ts"
+    "watch": "nodemon --watch 'src/**/*.ts' --ignore 'src/**/*.spec.ts' --exec yarn generate-typing & 'ts-node' src/index.ts",
+    "generate-typing": "ts-node utils/generate-typing.ts"
   },
   "dependencies": {
     "body-parser": "^1.18.3",
