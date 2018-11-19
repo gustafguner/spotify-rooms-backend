@@ -11,11 +11,11 @@ import { GraphQLResolveInfo } from 'graphql';
  *          TYPE DEFS          *
  *                             *
  *******************************/
-export interface GQLQuery {
-  authors?: Array<GQLAuthor | null>;
+export interface Query {
+  authors?: Array<Author | null>;
 }
 
-export interface GQLAuthor {
+export interface Author {
   id: string;
   firstName?: string;
   lastName?: string;
@@ -31,11 +31,11 @@ export interface GQLAuthor {
  * Note that this type is designed to be compatible with graphql-tools resolvers
  * However, you can still use other generated interfaces to make your resolver type-safed
  */
-export interface GQLResolver {
-  Query?: GQLQueryTypeResolver;
-  Author?: GQLAuthorTypeResolver;
+export interface Resolver {
+  Query?: QueryTypeResolver;
+  Author?: AuthorTypeResolver;
 }
-export interface GQLQueryTypeResolver<TParent = any> {
+export interface QueryTypeResolver<TParent = any> {
   authors?: QueryToAuthorsResolver<TParent>;
 }
 
@@ -43,7 +43,7 @@ export interface QueryToAuthorsResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface GQLAuthorTypeResolver<TParent = any> {
+export interface AuthorTypeResolver<TParent = any> {
   id?: AuthorToIdResolver<TParent>;
   firstName?: AuthorToFirstNameResolver<TParent>;
   lastName?: AuthorToLastNameResolver<TParent>;

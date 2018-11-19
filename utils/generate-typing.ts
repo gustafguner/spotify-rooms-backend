@@ -7,6 +7,9 @@ const schema = readFileSync(resolve('./src/schema.graphqls'), 'utf8');
 generateTypeScriptTypes(
   schema,
   './src/typings/generated-graphql-schema-types.ts',
+  {
+    typePrefix: '',
+  },
 )
   .then(() => {
     console.log('Typings successfully generated');
