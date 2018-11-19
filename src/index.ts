@@ -27,7 +27,7 @@ mongoose
     ),
   );
 
-let app = express();
+const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 app.use(
@@ -63,8 +63,8 @@ app.get('/spotifyAuthorizeUrl', (req, res: any) => {
 });
 
 app.get('/callback', (req, res) => {
-  let code = req.query.code || null;
-  let authOptions = {
+  const code = req.query.code || null;
+  const authOptions = {
     url: 'https://accounts.spotify.com/api/token',
     form: {
       code: code,
@@ -82,12 +82,12 @@ app.get('/callback', (req, res) => {
     },
     json: true,
   };
-  request.post(authOptions, (error, response, body) => {
-    let access_token = body.access_token;
-    let refresh_token = body.refresh_token;
-    let expires_in = body.expires_in;
+  request.post(authOptions, (body) => {
+    const access_token: string = body.access_token;
+    const refresh_token: string = body.refresh_token;
+    const expires_in: number = body.expires_in;
 
-    let userRequestOptions = {
+    const userRequestOptions = {
       url: 'https://api.spotify.com/v1/me',
       headers: {
         Authorization: 'Bearer ' + body.access_token,
@@ -95,8 +95,8 @@ app.get('/callback', (req, res) => {
       json: true,
     };
 
-    request.get(userRequestOptions, (error, response, body) => {
-      const uri = process.env.FRONTEND_URI || 'http://localhost:3000';
+    request.get(userRequestOptions, (body) => {
+      const uri: string = process.env.FRONTEND_URI || 'http://localhost:3000';
       console.log(body);
       res.redirect(
         uri +
@@ -112,7 +112,7 @@ app.get('/callback', (req, res) => {
 });
 
 app.get('/refreshAccessToken', (req, res) => {
-  let authOptions = {
+  const authOptions = {
     url: 'https://accounts.spotify.com/api/token',
     form: {
       grant_type: 'refresh_token',
@@ -135,6 +135,6 @@ app.get('/refreshAccessToken', (req, res) => {
   });
 });
 
-let port = process.env.PORT || 8888;
+const port = process.env.PORT || 8888;
 console.log('Server running on port ' + port);
 app.listen(port);
