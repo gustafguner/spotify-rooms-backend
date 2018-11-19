@@ -3,7 +3,7 @@ schema {
 }
 
 type Query {
-  users: [User]
+  user(query: String): User
   spots: [Spot]
 }
 
@@ -13,8 +13,10 @@ type Mutations {
 
 type User {
   id: ID!
+  spotifyId: String
+  displayName: String
   email: String
-  name: String
+  country: String
 }
 
 type Spot {

@@ -12,14 +12,16 @@ import { GraphQLResolveInfo } from 'graphql';
  *                             *
  *******************************/
 export interface Query {
-  users?: Array<User | null>;
+  user?: User;
   spots?: Array<Spot | null>;
 }
 
 export interface User {
   id: string;
+  spotifyId?: string;
+  displayName?: string;
   email?: string;
-  name?: string;
+  country?: string;
 }
 
 export interface Spot {
@@ -52,12 +54,15 @@ export interface Resolver {
   Mutations?: MutationsTypeResolver;
 }
 export interface QueryTypeResolver<TParent = any> {
-  users?: QueryToUsersResolver<TParent>;
+  user?: QueryToUserResolver<TParent>;
   spots?: QueryToSpotsResolver<TParent>;
 }
 
-export interface QueryToUsersResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+export interface QueryToUserArgs {
+  query?: string;
+}
+export interface QueryToUserResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: QueryToUserArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface QueryToSpotsResolver<TParent = any, TResult = any> {
@@ -66,11 +71,21 @@ export interface QueryToSpotsResolver<TParent = any, TResult = any> {
 
 export interface UserTypeResolver<TParent = any> {
   id?: UserToIdResolver<TParent>;
+  spotifyId?: UserToSpotifyIdResolver<TParent>;
+  displayName?: UserToDisplayNameResolver<TParent>;
   email?: UserToEmailResolver<TParent>;
-  name?: UserToNameResolver<TParent>;
+  country?: UserToCountryResolver<TParent>;
 }
 
 export interface UserToIdResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface UserToSpotifyIdResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface UserToDisplayNameResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
@@ -78,7 +93,7 @@ export interface UserToEmailResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface UserToNameResolver<TParent = any, TResult = any> {
+export interface UserToCountryResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 

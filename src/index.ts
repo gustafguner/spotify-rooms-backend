@@ -9,6 +9,8 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 import { schema } from './schema';
 
+import User from './models/user';
+
 mongoose
   .connect(
     process.env.MONGODB_URL,
@@ -47,7 +49,7 @@ const state = 'fix-this-later';
 const redirect_uri =
   process.env.SPOTIFY_REDIRECT_URI || 'http://localhost:8888/callback';
 
-app.get('/spotifyAuthorizeUrl', (req, res: any) => {
+app.get('/spotifyAuthorizeUrl', (req, res) => {
   res.json({
     spotify_authorize_url:
       'https://accounts.spotify.com/authorize?' +
@@ -82,7 +84,7 @@ app.get('/callback', (req, res) => {
     },
     json: true,
   };
-  request.post(authOptions, (body) => {
+  request.post(authOptions, (error, response, body) => {
     const access_token: string = body.access_token;
     const refresh_token: string = body.refresh_token;
     const expires_in: number = body.expires_in;
@@ -95,9 +97,21 @@ app.get('/callback', (req, res) => {
       json: true,
     };
 
-    request.get(userRequestOptions, (body) => {
+    request.get(userRequestOptions, async (error, response, body) => {
+      const usersWithSameSpotifyId = await User.countDocuments({
+        spotifyId: body.id,
+      });
+      if (usersWithSameSpotifyId === 0) {
+        const user = new User({
+          spotifyId: body.id,
+          displayName: body.display_name,
+          email: body.email,
+          country: body.country,
+        });
+        await user.save();
+      }
+
       const uri: string = process.env.FRONTEND_URI || 'http://localhost:3000';
-      console.log(body);
       res.redirect(
         uri +
           '?' +
