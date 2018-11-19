@@ -1,8 +1,10 @@
-const resolvers = {
+import { Resolver } from '../typings/generated-graphql-schema-types';
+
+import { spots } from './spots';
+
+const resolvers: Resolver = {
   Query: {
-    authors() {
-      return [{ id: 199 }];
-    },
+    spots,
   },
 };
 

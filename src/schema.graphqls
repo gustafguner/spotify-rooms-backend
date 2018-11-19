@@ -3,11 +3,10 @@ schema {
 }
 
 type Query {
-  authors: [Author]
+  spots: [Spot]
 }
 
-type Author {
+type Spot {
   id: ID!
-  firstName: String
-  lastName: String
+  name: String
 }

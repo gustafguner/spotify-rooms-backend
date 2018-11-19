@@ -2,11 +2,14 @@
   "compilerOptions": {
     "module": "commonjs",
     "moduleResolution": "node",
+    "typeRoots": ["./src/typings", "./node_modules/@types"],
     "pretty": true,
     "sourceMap": true,
     "target": "es6",
     "outDir": "./dist",
-    "baseUrl": "./lib"
+    "baseUrl": "./lib",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true
   },
   "include": ["lib/**/*.ts"],
   "exclude": ["node_modules"]

@@ -12,13 +12,12 @@ import { GraphQLResolveInfo } from 'graphql';
  *                             *
  *******************************/
 export interface Query {
-  authors?: Array<Author | null>;
+  spots?: Array<Spot | null>;
 }
 
-export interface Author {
+export interface Spot {
   id: string;
-  firstName?: string;
-  lastName?: string;
+  name?: string;
 }
 
 /*********************************
@@ -33,30 +32,25 @@ export interface Author {
  */
 export interface Resolver {
   Query?: QueryTypeResolver;
-  Author?: AuthorTypeResolver;
+  Spot?: SpotTypeResolver;
 }
 export interface QueryTypeResolver<TParent = any> {
-  authors?: QueryToAuthorsResolver<TParent>;
+  spots?: QueryToSpotsResolver<TParent>;
 }
 
-export interface QueryToAuthorsResolver<TParent = any, TResult = any> {
+export interface QueryToSpotsResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface AuthorTypeResolver<TParent = any> {
-  id?: AuthorToIdResolver<TParent>;
-  firstName?: AuthorToFirstNameResolver<TParent>;
-  lastName?: AuthorToLastNameResolver<TParent>;
+export interface SpotTypeResolver<TParent = any> {
+  id?: SpotToIdResolver<TParent>;
+  name?: SpotToNameResolver<TParent>;
 }
 
-export interface AuthorToIdResolver<TParent = any, TResult = any> {
+export interface SpotToIdResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface AuthorToFirstNameResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
-}
-
-export interface AuthorToLastNameResolver<TParent = any, TResult = any> {
+export interface SpotToNameResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
