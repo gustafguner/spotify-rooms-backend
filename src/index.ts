@@ -43,8 +43,6 @@ const scopes = [
   'user-read-email',
   'user-read-playback-state',
 ];
-const clientId = process.env.SPOTIFY_CLIENT_ID;
-const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 const state = 'fix-this-later';
 const redirect_uri =
   process.env.SPOTIFY_REDIRECT_URI || 'http://localhost:8888/callback';
@@ -55,7 +53,7 @@ app.get('/spotifyAuthorizeUrl', (req, res: any) => {
       'https://accounts.spotify.com/authorize?' +
       queryString.stringify({
         response_type: 'code',
-        client_id: clientId,
+        client_id: process.env.SPOTIFY_CLIENT_ID,
         scope: scopes.join(' '),
         redirect_uri,
         state,
@@ -85,16 +83,31 @@ app.get('/callback', (req, res) => {
     json: true,
   };
   request.post(authOptions, (error, response, body) => {
-    const uri = process.env.FRONTEND_URI || 'http://localhost:3000';
-    res.redirect(
-      uri +
-        '?' +
-        queryString.stringify({
-          access_token: body.access_token,
-          refresh_token: body.refresh_token,
-          expires_in: body.expires_in,
-        }),
-    );
+    let access_token = body.access_token;
+    let refresh_token = body.refresh_token;
+    let expires_in = body.expires_in;
+
+    let userRequestOptions = {
+      url: 'https://api.spotify.com/v1/me',
+      headers: {
+        Authorization: 'Bearer ' + body.access_token,
+      },
+      json: true,
+    };
+
+    request.get(userRequestOptions, (error, response, body) => {
+      const uri = process.env.FRONTEND_URI || 'http://localhost:3000';
+      console.log(body);
+      res.redirect(
+        uri +
+          '?' +
+          queryString.stringify({
+            access_token,
+            refresh_token,
+            expires_in,
+          }),
+      );
+    });
   });
 });
 

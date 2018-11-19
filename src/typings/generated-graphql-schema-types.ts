@@ -12,12 +12,27 @@ import { GraphQLResolveInfo } from 'graphql';
  *                             *
  *******************************/
 export interface Query {
+  users?: Array<User | null>;
   spots?: Array<Spot | null>;
+}
+
+export interface User {
+  id: string;
+  email?: string;
+  name?: string;
 }
 
 export interface Spot {
   id: string;
   name?: string;
+}
+
+export interface Mutations {
+  createSpot: Spot;
+}
+
+export interface SpotInput {
+  name: string;
 }
 
 /*********************************
@@ -32,13 +47,38 @@ export interface Spot {
  */
 export interface Resolver {
   Query?: QueryTypeResolver;
+  User?: UserTypeResolver;
   Spot?: SpotTypeResolver;
+  Mutations?: MutationsTypeResolver;
 }
 export interface QueryTypeResolver<TParent = any> {
+  users?: QueryToUsersResolver<TParent>;
   spots?: QueryToSpotsResolver<TParent>;
 }
 
+export interface QueryToUsersResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
 export interface QueryToSpotsResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface UserTypeResolver<TParent = any> {
+  id?: UserToIdResolver<TParent>;
+  email?: UserToEmailResolver<TParent>;
+  name?: UserToNameResolver<TParent>;
+}
+
+export interface UserToIdResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface UserToEmailResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface UserToNameResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
@@ -53,4 +93,15 @@ export interface SpotToIdResolver<TParent = any, TResult = any> {
 
 export interface SpotToNameResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface MutationsTypeResolver<TParent = any> {
+  createSpot?: MutationsToCreateSpotResolver<TParent>;
+}
+
+export interface MutationsToCreateSpotArgs {
+  spotInput: SpotInput;
+}
+export interface MutationsToCreateSpotResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: MutationsToCreateSpotArgs, context: any, info: GraphQLResolveInfo): TResult;
 }

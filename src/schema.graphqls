@@ -3,10 +3,25 @@ schema {
 }
 
 type Query {
+  users: [User]
   spots: [Spot]
+}
+
+type Mutations {
+  createSpot(spotInput: SpotInput!): Spot!
+}
+
+type User {
+  id: ID!
+  email: String
+  name: String
 }
 
 type Spot {
   id: ID!
   name: String
+}
+
+input SpotInput {
+  name: String!
 }
