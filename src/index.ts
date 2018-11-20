@@ -44,6 +44,8 @@ const scopes = [
   'user-read-private',
   'user-read-email',
   'user-read-playback-state',
+  'user-read-currently-playing',
+  'user-modify-playback-state',
 ];
 const state = 'fix-this-later';
 const redirect_uri =
