@@ -6,10 +6,15 @@ import * as graphqlHTTP from 'express-graphql';
 import * as bodyParser from 'body-parser';
 import * as cors from 'cors';
 import * as dotenv from 'dotenv';
+import * as passport from 'passport';
+import * as jwt from 'jsonwebtoken';
+const morgan = require('morgan');
 dotenv.config();
 import { schema } from './schema';
 
+import { jwtStrategy } from './config/passport';
 import User from './models/user';
+import { connect } from 'mongodb';
 
 mongoose
   .connect(
@@ -30,8 +35,12 @@ mongoose
   );
 
 const app = express();
+app.use(morgan('dev'));
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
 app.use(cors());
+
 app.use(
   '/graphql',
   graphqlHTTP({
@@ -40,12 +49,17 @@ app.use(
   }),
 );
 
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(jwtStrategy);
+
 const scopes = [
   'user-read-private',
   'user-read-email',
   'user-read-playback-state',
   'user-read-currently-playing',
   'user-modify-playback-state',
+  'user-read-recently-played',
 ];
 const state = 'fix-this-later';
 const redirect_uri =
@@ -126,6 +140,38 @@ app.get('/callback', (req, res) => {
     });
   });
 });
+
+app.post('/auth', (req, res) => {
+  const accessToken = req.body.accessToken;
+
+  const userRequestOptions = {
+    url: 'https://api.spotify.com/v1/me',
+    headers: {
+      Authorization: 'Bearer ' + accessToken,
+    },
+    json: true,
+  };
+
+  request.get(userRequestOptions, async (error, response, body) => {
+    if (!error && response.statusCode === 200) {
+      const token = jwt.sign({ spotifyId: body.id }, process.env.JWT_SECRET, {
+        expiresIn: 604800, // 1 week in seconds
+      });
+      res.json({ token: token });
+    } else {
+      res.status(401).json({ message: 'Authentication error.' });
+    }
+  });
+});
+
+app.get(
+  '/protected',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    console.log(req.user);
+    res.json({});
+  },
+);
 
 app.get('/refreshAccessToken', (req, res) => {
   const authOptions = {
