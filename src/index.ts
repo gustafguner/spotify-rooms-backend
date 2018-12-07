@@ -169,7 +169,7 @@ app.get(
   passport.authenticate('jwt', { session: false }),
   (req, res) => {
     console.log(req.user);
-    res.json({});
+    res.json({ status: 'It worked!' });
   },
 );
 

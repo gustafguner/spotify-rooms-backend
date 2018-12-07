@@ -10,8 +10,7 @@ export const jwtStrategy = new JWTStrategy(
     secretOrKey: process.env.JWT_SECRET,
   },
   (jwtPayload, callback) => {
-    console.log(jwtPayload);
-    User.findById(jwtPayload._id, (err, user) => {
+    User.findOne({ spotifyId: jwtPayload.spotifyId }, (err, user) => {
       if (err) {
         return callback(err, false);
       }
