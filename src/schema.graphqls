@@ -9,7 +9,7 @@ type Query {
 }
 
 type Mutation {
-  createRoom(roomInput: RoomInput!): Room!
+  createRoom(input: CreateRoomInput!): Boolean!
 }
 
 type User {
@@ -25,6 +25,6 @@ type Room {
   name: String
 }
 
-input RoomInput {
+input CreateRoomInput {
   name: String!
 }

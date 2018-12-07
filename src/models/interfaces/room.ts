@@ -1,5 +1,5 @@
 import * as mongoose from 'mongoose';
 
-export interface ISpot extends mongoose.Document {
+export interface IRoom extends mongoose.Document {
   name: string;
 }

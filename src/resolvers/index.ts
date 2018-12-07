@@ -1,9 +1,7 @@
 import { Resolver } from '../typings/generated-graphql-schema-types';
 
 import { user } from './user';
-import { rooms } from './rooms';
-
-import { createRoom } from './createRoom';
+import { rooms, createRoom } from './rooms';
 
 const resolvers: Resolver = {
   Query: {

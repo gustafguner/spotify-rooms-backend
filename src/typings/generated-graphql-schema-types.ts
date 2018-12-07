@@ -30,10 +30,10 @@ export interface Room {
 }
 
 export interface Mutation {
-  createRoom: Room;
+  createRoom: boolean;
 }
 
-export interface RoomInput {
+export interface CreateRoomInput {
   name: string;
 }
 
@@ -115,7 +115,7 @@ export interface MutationTypeResolver<TParent = any> {
 }
 
 export interface MutationToCreateRoomArgs {
-  roomInput: RoomInput;
+  input: CreateRoomInput;
 }
 export interface MutationToCreateRoomResolver<TParent = any, TResult = any> {
   (parent: TParent, args: MutationToCreateRoomArgs, context: any, info: GraphQLResolveInfo): TResult;
