@@ -13,7 +13,7 @@ import { GraphQLResolveInfo } from 'graphql';
  *******************************/
 export interface Query {
   user?: User;
-  spots?: Array<Spot | null>;
+  rooms?: Array<Room | null>;
 }
 
 export interface User {
@@ -24,16 +24,16 @@ export interface User {
   country?: string;
 }
 
-export interface Spot {
+export interface Room {
   id: string;
   name?: string;
 }
 
-export interface Mutations {
-  createSpot: Spot;
+export interface Mutation {
+  createRoom: Room;
 }
 
-export interface SpotInput {
+export interface RoomInput {
   name: string;
 }
 
@@ -50,12 +50,12 @@ export interface SpotInput {
 export interface Resolver {
   Query?: QueryTypeResolver;
   User?: UserTypeResolver;
-  Spot?: SpotTypeResolver;
-  Mutations?: MutationsTypeResolver;
+  Room?: RoomTypeResolver;
+  Mutation?: MutationTypeResolver;
 }
 export interface QueryTypeResolver<TParent = any> {
   user?: QueryToUserResolver<TParent>;
-  spots?: QueryToSpotsResolver<TParent>;
+  rooms?: QueryToRoomsResolver<TParent>;
 }
 
 export interface QueryToUserArgs {
@@ -65,7 +65,7 @@ export interface QueryToUserResolver<TParent = any, TResult = any> {
   (parent: TParent, args: QueryToUserArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface QueryToSpotsResolver<TParent = any, TResult = any> {
+export interface QueryToRoomsResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
@@ -97,26 +97,26 @@ export interface UserToCountryResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface SpotTypeResolver<TParent = any> {
-  id?: SpotToIdResolver<TParent>;
-  name?: SpotToNameResolver<TParent>;
+export interface RoomTypeResolver<TParent = any> {
+  id?: RoomToIdResolver<TParent>;
+  name?: RoomToNameResolver<TParent>;
 }
 
-export interface SpotToIdResolver<TParent = any, TResult = any> {
+export interface RoomToIdResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface SpotToNameResolver<TParent = any, TResult = any> {
+export interface RoomToNameResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface MutationsTypeResolver<TParent = any> {
-  createSpot?: MutationsToCreateSpotResolver<TParent>;
+export interface MutationTypeResolver<TParent = any> {
+  createRoom?: MutationToCreateRoomResolver<TParent>;
 }
 
-export interface MutationsToCreateSpotArgs {
-  spotInput: SpotInput;
+export interface MutationToCreateRoomArgs {
+  roomInput: RoomInput;
 }
-export interface MutationsToCreateSpotResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: MutationsToCreateSpotArgs, context: any, info: GraphQLResolveInfo): TResult;
+export interface MutationToCreateRoomResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: MutationToCreateRoomArgs, context: any, info: GraphQLResolveInfo): TResult;
 }

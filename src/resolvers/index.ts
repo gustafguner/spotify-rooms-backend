@@ -1,12 +1,17 @@
 import { Resolver } from '../typings/generated-graphql-schema-types';
 
 import { user } from './user';
-import { spots } from './spots';
+import { rooms } from './rooms';
+
+import { createRoom } from './createRoom';
 
 const resolvers: Resolver = {
   Query: {
     user,
-    spots,
+    rooms,
+  },
+  Mutation: {
+    createRoom,
   },
 };
 

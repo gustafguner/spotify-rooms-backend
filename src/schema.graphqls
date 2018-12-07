@@ -1,14 +1,15 @@
 schema {
   query: Query
+  mutation: Mutation
 }
 
 type Query {
   user(query: String): User
-  spots: [Spot]
+  rooms: [Room]
 }
 
-type Mutations {
-  createSpot(spotInput: SpotInput!): Spot!
+type Mutation {
+  createRoom(roomInput: RoomInput!): Room!
 }
 
 type User {
@@ -19,11 +20,11 @@ type User {
   country: String
 }
 
-type Spot {
+type Room {
   id: ID!
   name: String
 }
 
-input SpotInput {
+input RoomInput {
   name: String!
 }
