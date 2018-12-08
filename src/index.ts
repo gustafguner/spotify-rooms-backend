@@ -43,10 +43,14 @@ app.use(cors());
 
 app.use(
   '/graphql',
-  graphqlHTTP({
+  passport.authenticate('jwt', { session: false }),
+  graphqlHTTP((req) => ({
     schema: schema,
+    context: {
+      user: req.user,
+    },
     graphiql: true,
-  }),
+  })),
 );
 
 app.use(passport.initialize());
