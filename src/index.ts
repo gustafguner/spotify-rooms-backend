@@ -8,13 +8,13 @@ import * as cors from 'cors';
 import * as dotenv from 'dotenv';
 import * as passport from 'passport';
 import * as jwt from 'jsonwebtoken';
+import * as expressJwt from 'express-jwt';
 const morgan = require('morgan');
 dotenv.config();
 import { schema } from './schema';
 
 import { jwtStrategy } from './config/passport';
 import User from './models/user';
-import { connect } from 'mongodb';
 
 mongoose
   .connect(
@@ -35,27 +35,42 @@ mongoose
   );
 
 const app = express();
+
 app.use(morgan('dev'));
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.use(cors());
 
-app.use(
-  '/graphql',
-  passport.authenticate('jwt', { session: false }),
-  graphqlHTTP((req) => ({
-    schema: schema,
-    context: {
-      user: req.user,
-    },
-    graphiql: true,
-  })),
-);
-
 app.use(passport.initialize());
 app.use(passport.session());
 passport.use(jwtStrategy);
+
+app.use(
+  '/graphql',
+  graphqlHTTP(async (req) => {
+    const authorization = req.headers.authorization;
+    const token = authorization ? authorization.substring(7) : null;
+
+    let decodedToken = null;
+
+    try {
+      decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    } catch {}
+
+    return {
+      schema: schema,
+      context: {
+        user:
+          decodedToken !== null
+            ? await User.find({ spotifyId: decodedToken.spotifyId })
+            : null,
+      },
+      graphiql: true,
+    };
+  }),
+);
 
 const scopes = [
   'user-read-private',
