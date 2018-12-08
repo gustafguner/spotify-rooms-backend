@@ -26,6 +26,15 @@ export interface User {
 
 export interface Room {
   id: string;
+  name: string;
+  host: User;
+  users?: Array<User | null>;
+  playback?: Playback;
+}
+
+export interface Playback {
+  isPlaying?: boolean;
+  uri?: string;
   name?: string;
 }
 
@@ -51,6 +60,7 @@ export interface Resolver {
   Query?: QueryTypeResolver;
   User?: UserTypeResolver;
   Room?: RoomTypeResolver;
+  Playback?: PlaybackTypeResolver;
   Mutation?: MutationTypeResolver;
 }
 export interface QueryTypeResolver<TParent = any> {
@@ -100,6 +110,9 @@ export interface UserToCountryResolver<TParent = any, TResult = any> {
 export interface RoomTypeResolver<TParent = any> {
   id?: RoomToIdResolver<TParent>;
   name?: RoomToNameResolver<TParent>;
+  host?: RoomToHostResolver<TParent>;
+  users?: RoomToUsersResolver<TParent>;
+  playback?: RoomToPlaybackResolver<TParent>;
 }
 
 export interface RoomToIdResolver<TParent = any, TResult = any> {
@@ -107,6 +120,36 @@ export interface RoomToIdResolver<TParent = any, TResult = any> {
 }
 
 export interface RoomToNameResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface RoomToHostResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface RoomToUsersResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface RoomToPlaybackResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface PlaybackTypeResolver<TParent = any> {
+  isPlaying?: PlaybackToIsPlayingResolver<TParent>;
+  uri?: PlaybackToUriResolver<TParent>;
+  name?: PlaybackToNameResolver<TParent>;
+}
+
+export interface PlaybackToIsPlayingResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface PlaybackToUriResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface PlaybackToNameResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 

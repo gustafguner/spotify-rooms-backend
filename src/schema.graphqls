@@ -22,6 +22,15 @@ type User {
 
 type Room {
   id: ID!
+  name: String!
+  host: User!
+  users: [User]
+  playback: Playback
+}
+
+type Playback {
+  isPlaying: Boolean
+  uri: String
   name: String
 }
 
