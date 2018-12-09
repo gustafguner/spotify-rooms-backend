@@ -13,6 +13,7 @@ import { GraphQLResolveInfo } from 'graphql';
  *******************************/
 export interface Query {
   user?: User;
+  room?: Room;
   rooms?: Array<Room | null>;
 }
 
@@ -65,6 +66,7 @@ export interface Resolver {
 }
 export interface QueryTypeResolver<TParent = any> {
   user?: QueryToUserResolver<TParent>;
+  room?: QueryToRoomResolver<TParent>;
   rooms?: QueryToRoomsResolver<TParent>;
 }
 
@@ -73,6 +75,13 @@ export interface QueryToUserArgs {
 }
 export interface QueryToUserResolver<TParent = any, TResult = any> {
   (parent: TParent, args: QueryToUserArgs, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface QueryToRoomArgs {
+  query: string;
+}
+export interface QueryToRoomResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: QueryToRoomArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface QueryToRoomsResolver<TParent = any, TResult = any> {

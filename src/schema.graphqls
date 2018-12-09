@@ -5,6 +5,7 @@ schema {
 
 type Query {
   user(query: String): User
+  room(query: ID!): Room
   rooms: [Room]
 }
 
