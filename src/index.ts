@@ -64,7 +64,7 @@ app.use(
       context: {
         user:
           decodedToken !== null
-            ? await User.find({ spotifyId: decodedToken.spotifyId })
+            ? await User.findOne({ spotifyId: decodedToken.spotifyId })
             : null,
       },
       graphiql: true,

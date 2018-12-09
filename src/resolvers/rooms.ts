@@ -4,9 +4,9 @@ import { MutationToCreateRoomResolver } from '../typings/generated-graphql-schem
 import Room from '../models/room';
 
 const rooms: QueryToRoomsResolver = async (root, input, { user }) => {
-  console.log(user);
-  const rooms = await Room.find({});
-  return rooms;
+  return await Room.find({})
+    .populate('host')
+    .exec();
 };
 
 const createRoom: MutationToCreateRoomResolver = async (
@@ -14,7 +14,14 @@ const createRoom: MutationToCreateRoomResolver = async (
   { input },
   { user },
 ) => {
-  const room = new Room(input);
+  if (!user) return false;
+
+  console.log(input);
+  console.log(user);
+  const room = new Room({
+    ...input,
+    host: user._id,
+  });
   room.save((err, room) => {
     return true;
   });
