@@ -11,11 +11,15 @@ type Query {
 
 type Mutation {
   createRoom(input: CreateRoomInput!): Boolean!
+  addTrackToQueue(input: AddTrackToQueueInput!): Boolean!
 }
 
 type User {
   id: ID!
   spotifyId: String
+  accessToken: String
+  refreshToken: String
+  expires: Int
   displayName: String
   email: String
   country: String
@@ -26,10 +30,11 @@ type Room {
   name: String!
   host: User!
   users: [User]
-  playback: Playback
+  playback: Track
+  queue: [Track]
 }
 
-type Playback {
+type Track {
   isPlaying: Boolean
   uri: String
   name: String
@@ -49,4 +54,8 @@ type SpotifyImage {
 
 input CreateRoomInput {
   name: String!
+}
+
+input AddTrackToQueueInput {
+  trackId: String!
 }

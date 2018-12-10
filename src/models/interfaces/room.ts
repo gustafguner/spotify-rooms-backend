@@ -6,4 +6,5 @@ export interface IRoom extends mongoose.Document {
   host: string;
   users: string[];
   playback?: ITrack;
+  queue?: ITrack[];
 }

@@ -20,6 +20,9 @@ export interface Query {
 export interface User {
   id: string;
   spotifyId?: string;
+  accessToken?: string;
+  refreshToken?: string;
+  expires?: number;
   displayName?: string;
   email?: string;
   country?: string;
@@ -30,10 +33,11 @@ export interface Room {
   name: string;
   host: User;
   users?: Array<User | null>;
-  playback?: Playback;
+  playback?: Track;
+  queue?: Array<Track | null>;
 }
 
-export interface Playback {
+export interface Track {
   isPlaying?: boolean;
   uri?: string;
   name?: string;
@@ -53,10 +57,15 @@ export interface SpotifyImage {
 
 export interface Mutation {
   createRoom: boolean;
+  addTrackToQueue: boolean;
 }
 
 export interface CreateRoomInput {
   name: string;
+}
+
+export interface AddTrackToQueueInput {
+  trackId: string;
 }
 
 /*********************************
@@ -73,7 +82,7 @@ export interface Resolver {
   Query?: QueryTypeResolver;
   User?: UserTypeResolver;
   Room?: RoomTypeResolver;
-  Playback?: PlaybackTypeResolver;
+  Track?: TrackTypeResolver;
   Artist?: ArtistTypeResolver;
   SpotifyImage?: SpotifyImageTypeResolver;
   Mutation?: MutationTypeResolver;
@@ -105,6 +114,9 @@ export interface QueryToRoomsResolver<TParent = any, TResult = any> {
 export interface UserTypeResolver<TParent = any> {
   id?: UserToIdResolver<TParent>;
   spotifyId?: UserToSpotifyIdResolver<TParent>;
+  accessToken?: UserToAccessTokenResolver<TParent>;
+  refreshToken?: UserToRefreshTokenResolver<TParent>;
+  expires?: UserToExpiresResolver<TParent>;
   displayName?: UserToDisplayNameResolver<TParent>;
   email?: UserToEmailResolver<TParent>;
   country?: UserToCountryResolver<TParent>;
@@ -115,6 +127,18 @@ export interface UserToIdResolver<TParent = any, TResult = any> {
 }
 
 export interface UserToSpotifyIdResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface UserToAccessTokenResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface UserToRefreshTokenResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface UserToExpiresResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
@@ -136,6 +160,7 @@ export interface RoomTypeResolver<TParent = any> {
   host?: RoomToHostResolver<TParent>;
   users?: RoomToUsersResolver<TParent>;
   playback?: RoomToPlaybackResolver<TParent>;
+  queue?: RoomToQueueResolver<TParent>;
 }
 
 export interface RoomToIdResolver<TParent = any, TResult = any> {
@@ -158,31 +183,35 @@ export interface RoomToPlaybackResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface PlaybackTypeResolver<TParent = any> {
-  isPlaying?: PlaybackToIsPlayingResolver<TParent>;
-  uri?: PlaybackToUriResolver<TParent>;
-  name?: PlaybackToNameResolver<TParent>;
-  artists?: PlaybackToArtistsResolver<TParent>;
-  images?: PlaybackToImagesResolver<TParent>;
-}
-
-export interface PlaybackToIsPlayingResolver<TParent = any, TResult = any> {
+export interface RoomToQueueResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface PlaybackToUriResolver<TParent = any, TResult = any> {
+export interface TrackTypeResolver<TParent = any> {
+  isPlaying?: TrackToIsPlayingResolver<TParent>;
+  uri?: TrackToUriResolver<TParent>;
+  name?: TrackToNameResolver<TParent>;
+  artists?: TrackToArtistsResolver<TParent>;
+  images?: TrackToImagesResolver<TParent>;
+}
+
+export interface TrackToIsPlayingResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface PlaybackToNameResolver<TParent = any, TResult = any> {
+export interface TrackToUriResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface PlaybackToArtistsResolver<TParent = any, TResult = any> {
+export interface TrackToNameResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface PlaybackToImagesResolver<TParent = any, TResult = any> {
+export interface TrackToArtistsResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface TrackToImagesResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
@@ -214,6 +243,7 @@ export interface SpotifyImageToHeightResolver<TParent = any, TResult = any> {
 
 export interface MutationTypeResolver<TParent = any> {
   createRoom?: MutationToCreateRoomResolver<TParent>;
+  addTrackToQueue?: MutationToAddTrackToQueueResolver<TParent>;
 }
 
 export interface MutationToCreateRoomArgs {
@@ -221,4 +251,11 @@ export interface MutationToCreateRoomArgs {
 }
 export interface MutationToCreateRoomResolver<TParent = any, TResult = any> {
   (parent: TParent, args: MutationToCreateRoomArgs, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface MutationToAddTrackToQueueArgs {
+  input: AddTrackToQueueInput;
+}
+export interface MutationToAddTrackToQueueResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: MutationToAddTrackToQueueArgs, context: any, info: GraphQLResolveInfo): TResult;
 }

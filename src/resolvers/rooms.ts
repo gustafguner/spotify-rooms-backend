@@ -2,6 +2,7 @@ import {
   QueryToRoomsResolver,
   QueryToRoomResolver,
   MutationToCreateRoomResolver,
+  MutationToAddTrackToQueueResolver,
 } from '../typings/generated-graphql-schema-types';
 import Room from '../models/room';
 
@@ -36,4 +37,13 @@ const createRoom: MutationToCreateRoomResolver = async (
   return true;
 };
 
-export { rooms, room, createRoom };
+const addTrackToQueue: MutationToAddTrackToQueueResolver = async (
+  root,
+  { input },
+  { user },
+) => {
+  console.log(input);
+  return true;
+};
+
+export { rooms, room, createRoom, addTrackToQueue };

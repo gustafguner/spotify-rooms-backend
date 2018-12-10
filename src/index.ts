@@ -8,13 +8,32 @@ import * as cors from 'cors';
 import * as dotenv from 'dotenv';
 import * as passport from 'passport';
 import * as jwt from 'jsonwebtoken';
-import * as expressJwt from 'express-jwt';
+const SpotifyWebApi = require('spotify-web-api-node');
+
 const morgan = require('morgan');
 dotenv.config();
 import { schema } from './schema';
 
 import { jwtStrategy } from './config/passport';
 import User from './models/user';
+
+let spotifyApiObjects = {};
+
+const spotifyApi = new SpotifyWebApi({
+  clientId: process.env.SPOTIFY_CLIENT_ID,
+  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+  redirectUri: process.env.SPOTIFY_REDIRECT_URI,
+});
+
+const scopes = [
+  'user-read-private',
+  'user-read-email',
+  'user-read-playback-state',
+  'user-read-currently-playing',
+  'user-modify-playback-state',
+  'user-read-recently-played',
+];
+const state = 'fix-this-later';
 
 mongoose
   .connect(
@@ -72,149 +91,138 @@ app.use(
   }),
 );
 
-const scopes = [
-  'user-read-private',
-  'user-read-email',
-  'user-read-playback-state',
-  'user-read-currently-playing',
-  'user-modify-playback-state',
-  'user-read-recently-played',
-];
-const state = 'fix-this-later';
-const redirect_uri =
-  process.env.SPOTIFY_REDIRECT_URI || 'http://localhost:8888/callback';
-
 app.get('/spotifyAuthorizeUrl', (req, res) => {
   res.json({
-    spotify_authorize_url:
-      'https://accounts.spotify.com/authorize?' +
-      queryString.stringify({
-        response_type: 'code',
-        client_id: process.env.SPOTIFY_CLIENT_ID,
-        scope: scopes.join(' '),
-        redirect_uri,
-        state,
-        show_dialog: true,
-      }),
+    spotify_authorize_url: spotifyApi.createAuthorizeURL(scopes, state),
   });
 });
 
 app.get('/callback', (req, res) => {
   const code = req.query.code || null;
-  const authOptions = {
-    url: 'https://accounts.spotify.com/api/token',
-    form: {
-      code: code,
-      redirect_uri,
-      grant_type: 'authorization_code',
-    },
-    headers: {
-      Authorization:
-        'Basic ' +
-        new Buffer(
-          process.env.SPOTIFY_CLIENT_ID +
-            ':' +
-            process.env.SPOTIFY_CLIENT_SECRET,
-        ).toString('base64'),
-    },
-    json: true,
-  };
-  request.post(authOptions, (error, response, body) => {
-    const access_token: string = body.access_token;
-    const refresh_token: string = body.refresh_token;
-    const expires_in: number = body.expires_in;
 
-    const userRequestOptions = {
-      url: 'https://api.spotify.com/v1/me',
-      headers: {
-        Authorization: 'Bearer ' + body.access_token,
-      },
-      json: true,
-    };
+  spotifyApi.authorizationCodeGrant(code).then(
+    async (data) => {
+      const access_token = data.body['access_token'];
+      const refresh_token = data.body['refresh_token'];
+      const expires_in = data.body['expires_in'];
 
-    request.get(userRequestOptions, async (error, response, body) => {
-      const usersWithSameSpotifyId = await User.countDocuments({
-        spotifyId: body.id,
-      });
-      if (usersWithSameSpotifyId === 0) {
-        const user = new User({
-          spotifyId: body.id,
-          displayName: body.display_name,
-          email: body.email,
-          country: body.country,
-        });
-        await user.save();
-      }
+      const expires = Date.now() + expires_in * 1000 - 1000 * 60 * 5;
 
-      const uri: string = process.env.FRONTEND_URI || 'http://localhost:3000';
-      res.redirect(
-        uri +
-          '?' +
-          queryString.stringify({
-            access_token,
-            refresh_token,
-            expires_in,
-          }),
+      const tempSpotifyWebApi = {
+        expires,
+        api: new SpotifyWebApi({
+          clientId: process.env.SPOTIFY_CLIENT_ID,
+          clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+          redirectUri: process.env.SPOTIFY_REDIRECT_URI,
+        }),
+      };
+
+      tempSpotifyWebApi.api.setAccessToken(access_token);
+      tempSpotifyWebApi.api.setRefreshToken(refresh_token);
+
+      tempSpotifyWebApi.api.getMe().then(
+        async ({ body }) => {
+          let user = await User.findOne({ spotifyId: body.id });
+          console.log('user: ' + user);
+
+          if (!user) {
+            user = new User({
+              spotifyId: body.id,
+              accessToken: access_token,
+              refreshToken: refresh_token,
+              expires,
+              displayName: body.display_name,
+              email: body.email,
+              country: body.country,
+            });
+            await user.save();
+          }
+
+          spotifyApiObjects[user._id] = tempSpotifyWebApi;
+
+          const uri: string =
+            process.env.FRONTEND_URI || 'http://localhost:3000';
+          res.redirect(
+            uri +
+              '?' +
+              queryString.stringify({
+                access_token,
+                refresh_token,
+                expires_in,
+              }),
+          );
+        },
+        (error) => {
+          console.error('Error: ', error);
+        },
       );
-    });
-  });
+    },
+    (error) => {
+      console.error('Error: ', error);
+    },
+  );
 });
 
 app.post('/auth', (req, res) => {
   const accessToken = req.body.accessToken;
 
-  const userRequestOptions = {
-    url: 'https://api.spotify.com/v1/me',
-    headers: {
-      Authorization: 'Bearer ' + accessToken,
-    },
-    json: true,
-  };
+  const tempSpotifyApi = new SpotifyWebApi({
+    clientId: process.env.SPOTIFY_CLIENT_ID,
+    clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+    redirectUri: process.env.SPOTIFY_REDIRECT_URI,
+  });
+  tempSpotifyApi.setAccessToken(accessToken);
 
-  request.get(userRequestOptions, async (error, response, body) => {
-    if (!error && response.statusCode === 200) {
+  tempSpotifyApi.getMe().then(
+    ({ body }) => {
       const token = jwt.sign({ spotifyId: body.id }, process.env.JWT_SECRET, {
         expiresIn: 604800, // 1 week in seconds
       });
       res.json({ token: token });
-    } else {
+    },
+    (error) => {
       res.status(401).json({ message: 'Authentication error.' });
-    }
-  });
+    },
+  );
 });
+
+const createSpotifyWebApi = (accessToken: string, refreshToken: string) => {
+  const api = new SpotifyWebApi({
+    clientId: process.env.SPOTIFY_CLIENT_ID,
+    clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+    redirectUri: process.env.SPOTIFY_REDIRECT_URI,
+  });
+  api.setAccessToken(accessToken);
+  api.setRefreshToken(refreshToken);
+
+  return api;
+};
+
+const spotifyApiObjectsMiddleware = (req, res, next) => {
+  if (!spotifyApiObjects[req.user]) {
+    spotifyApiObjects[req.user._id] = {
+      expires: req.user.expires,
+      api: createSpotifyWebApi(req.user.accessToken, req.user.refreshToken),
+    };
+  }
+  next();
+};
 
 app.get(
-  '/protected',
+  '/refreshAccessToken',
   passport.authenticate('jwt', { session: false }),
+  spotifyApiObjectsMiddleware,
   (req, res) => {
-    console.log(req.user);
-    res.json({ status: 'It worked!' });
+    spotifyApiObjects[req.user._id].api.refreshAccessToken().then(
+      ({ body }) => {
+        res.json(body);
+      },
+      (error) => {
+        res.status(400).json({ message: 'Could not refresh access token.' });
+      },
+    );
   },
 );
-
-app.get('/refreshAccessToken', (req, res) => {
-  const authOptions = {
-    url: 'https://accounts.spotify.com/api/token',
-    form: {
-      grant_type: 'refresh_token',
-      refresh_token: req.query.refresh_token,
-    },
-    headers: {
-      Authorization:
-        'Basic ' +
-        new Buffer(
-          process.env.SPOTIFY_CLIENT_ID +
-            ':' +
-            process.env.SPOTIFY_CLIENT_SECRET,
-        ).toString('base64'),
-    },
-    json: true,
-  };
-
-  request.post(authOptions, (error, response, body) => {
-    res.json(body);
-  });
-});
 
 const port = process.env.PORT || 8888;
 console.log('Server running on port ' + port);

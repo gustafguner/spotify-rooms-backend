@@ -6,6 +6,7 @@ export const UserSchema = new mongoose.Schema({
   spotifyId: { type: String, required: true },
   accessToken: { type: String, required: true },
   refreshToken: { type: String, required: true },
+  expires: { type: Number, required: true },
   displayName: { type: String, required: true },
   email: { type: String, required: false },
   country: { type: String, required: false },
