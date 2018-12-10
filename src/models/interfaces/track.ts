@@ -1,6 +1,5 @@
 export interface ITrack {
-  isPlaying: boolean;
-  uri: string;
+  id: string;
   name: string;
   artists: string[];
   images: SpotifyImage[];

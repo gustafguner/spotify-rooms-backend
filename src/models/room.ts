@@ -4,8 +4,7 @@ import { IRoom } from './interfaces/room';
 import { ITrack } from './interfaces/track';
 
 const Track = {
-  isPlaying: { type: Boolean },
-  uri: { type: String },
+  id: { type: String },
   name: { type: String },
   artists: [
     {

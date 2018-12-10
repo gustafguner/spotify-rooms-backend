@@ -38,8 +38,7 @@ export interface Room {
 }
 
 export interface Track {
-  isPlaying?: boolean;
-  uri?: string;
+  id?: string;
   name?: string;
   artists?: Array<Artist | null>;
   images?: Array<SpotifyImage | null>;
@@ -65,7 +64,7 @@ export interface CreateRoomInput {
 }
 
 export interface AddTrackToQueueInput {
-  trackId: string;
+  id: string;
 }
 
 /*********************************
@@ -188,18 +187,13 @@ export interface RoomToQueueResolver<TParent = any, TResult = any> {
 }
 
 export interface TrackTypeResolver<TParent = any> {
-  isPlaying?: TrackToIsPlayingResolver<TParent>;
-  uri?: TrackToUriResolver<TParent>;
+  id?: TrackToIdResolver<TParent>;
   name?: TrackToNameResolver<TParent>;
   artists?: TrackToArtistsResolver<TParent>;
   images?: TrackToImagesResolver<TParent>;
 }
 
-export interface TrackToIsPlayingResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
-}
-
-export interface TrackToUriResolver<TParent = any, TResult = any> {
+export interface TrackToIdResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 

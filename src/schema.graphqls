@@ -35,8 +35,7 @@ type Room {
 }
 
 type Track {
-  isPlaying: Boolean
-  uri: String
+  id: String
   name: String
   artists: [Artist]
   images: [SpotifyImage]
@@ -57,5 +56,5 @@ input CreateRoomInput {
 }
 
 input AddTrackToQueueInput {
-  trackId: String!
+  id: String!
 }

@@ -17,13 +17,12 @@ import { schema } from './schema';
 import { jwtStrategy } from './config/passport';
 import User from './models/user';
 
-let spotifyApiObjects = {};
-
-const spotifyApi = new SpotifyWebApi({
-  clientId: process.env.SPOTIFY_CLIENT_ID,
-  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-  redirectUri: process.env.SPOTIFY_REDIRECT_URI,
-});
+import {
+  spotifyInstances,
+  spotifyApi,
+  setSpotifyInstance,
+  getSpotifyInstance,
+} from './spotify';
 
 const scopes = [
   'user-read-private',
@@ -123,7 +122,6 @@ app.get('/callback', (req, res) => {
       tempSpotifyWebApi.api.getMe().then(
         async ({ body }) => {
           let user = await User.findOne({ spotifyId: body.id });
-          console.log('user: ' + user);
 
           if (!user) {
             user = new User({
@@ -138,7 +136,7 @@ app.get('/callback', (req, res) => {
             await user.save();
           }
 
-          spotifyApiObjects[user._id] = tempSpotifyWebApi;
+          setSpotifyInstance(user._id, expires, access_token, refresh_token);
 
           const uri: string =
             process.env.FRONTEND_URI || 'http://localhost:3000';
@@ -186,41 +184,56 @@ app.post('/auth', (req, res) => {
   );
 });
 
-const createSpotifyWebApi = (accessToken: string, refreshToken: string) => {
-  const api = new SpotifyWebApi({
-    clientId: process.env.SPOTIFY_CLIENT_ID,
-    clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-    redirectUri: process.env.SPOTIFY_REDIRECT_URI,
-  });
-  api.setAccessToken(accessToken);
-  api.setRefreshToken(refreshToken);
-
-  return api;
-};
-
-const spotifyApiObjectsMiddleware = (req, res, next) => {
-  if (!spotifyApiObjects[req.user]) {
-    spotifyApiObjects[req.user._id] = {
-      expires: req.user.expires,
-      api: createSpotifyWebApi(req.user.accessToken, req.user.refreshToken),
-    };
+const spotifyInstancesMiddleware = (req, res, next) => {
+  if (!getSpotifyInstance(req.user._id)) {
+    setSpotifyInstance(
+      req.user._id,
+      req.user.expires,
+      req.user.accessToken,
+      req.user.refreshToken,
+    );
   }
   next();
 };
 
+app.get('/spotifyInstances', (req, res) => {
+  console.log(spotifyInstances);
+  res.json({ result: true });
+});
+
 app.get(
   '/refreshAccessToken',
   passport.authenticate('jwt', { session: false }),
-  spotifyApiObjectsMiddleware,
+  spotifyInstancesMiddleware,
   (req, res) => {
-    spotifyApiObjects[req.user._id].api.refreshAccessToken().then(
-      ({ body }) => {
-        res.json(body);
-      },
-      (error) => {
-        res.status(400).json({ message: 'Could not refresh access token.' });
-      },
-    );
+    getSpotifyInstance(req.user._id)
+      .api.refreshAccessToken()
+      .then(
+        async ({ body }) => {
+          const user = await User.findById(req.user._id);
+
+          if (!user) {
+            return res
+              .status(400)
+              .json({ message: 'Unexpected Server Error.' });
+          }
+
+          const access_token = body['access_token'];
+          const expires_in = body['expires_in'];
+
+          const expires = Date.now() + expires_in * 1000 - 1000 * 60 * 5;
+
+          user.accessToken = access_token;
+          user.expires = expires;
+
+          await user.save();
+
+          res.json(body);
+        },
+        (error) => {
+          res.status(400).json({ message: 'Could not refresh access token.' });
+        },
+      );
   },
 );
 

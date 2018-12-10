@@ -13,7 +13,6 @@ const rooms: QueryToRoomsResolver = async (root, input, { user }) => {
 };
 
 const room: QueryToRoomResolver = async (root, input, { user }) => {
-  console.log(input);
   return await Room.findOne({ _id: input.query })
     .populate('host')
     .exec();
