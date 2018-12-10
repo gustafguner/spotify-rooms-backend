@@ -33,6 +33,18 @@ type Playback {
   isPlaying: Boolean
   uri: String
   name: String
+  artists: [Artist]
+  images: [SpotifyImage]
+}
+
+type Artist {
+  name: String
+}
+
+type SpotifyImage {
+  url: String
+  width: Int
+  height: Int
 }
 
 input CreateRoomInput {

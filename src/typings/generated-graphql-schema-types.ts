@@ -37,6 +37,18 @@ export interface Playback {
   isPlaying?: boolean;
   uri?: string;
   name?: string;
+  artists?: Array<Artist | null>;
+  images?: Array<SpotifyImage | null>;
+}
+
+export interface Artist {
+  name?: string;
+}
+
+export interface SpotifyImage {
+  url?: string;
+  width?: number;
+  height?: number;
 }
 
 export interface Mutation {
@@ -62,6 +74,8 @@ export interface Resolver {
   User?: UserTypeResolver;
   Room?: RoomTypeResolver;
   Playback?: PlaybackTypeResolver;
+  Artist?: ArtistTypeResolver;
+  SpotifyImage?: SpotifyImageTypeResolver;
   Mutation?: MutationTypeResolver;
 }
 export interface QueryTypeResolver<TParent = any> {
@@ -148,6 +162,8 @@ export interface PlaybackTypeResolver<TParent = any> {
   isPlaying?: PlaybackToIsPlayingResolver<TParent>;
   uri?: PlaybackToUriResolver<TParent>;
   name?: PlaybackToNameResolver<TParent>;
+  artists?: PlaybackToArtistsResolver<TParent>;
+  images?: PlaybackToImagesResolver<TParent>;
 }
 
 export interface PlaybackToIsPlayingResolver<TParent = any, TResult = any> {
@@ -159,6 +175,40 @@ export interface PlaybackToUriResolver<TParent = any, TResult = any> {
 }
 
 export interface PlaybackToNameResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface PlaybackToArtistsResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface PlaybackToImagesResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface ArtistTypeResolver<TParent = any> {
+  name?: ArtistToNameResolver<TParent>;
+}
+
+export interface ArtistToNameResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface SpotifyImageTypeResolver<TParent = any> {
+  url?: SpotifyImageToUrlResolver<TParent>;
+  width?: SpotifyImageToWidthResolver<TParent>;
+  height?: SpotifyImageToHeightResolver<TParent>;
+}
+
+export interface SpotifyImageToUrlResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface SpotifyImageToWidthResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface SpotifyImageToHeightResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 

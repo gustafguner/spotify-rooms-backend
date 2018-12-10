@@ -10,6 +10,18 @@ export const RoomSchema = new mongoose.Schema({
     isPlaying: { type: Boolean },
     uri: { type: String },
     name: { type: String },
+    artists: [
+      {
+        name: { type: String },
+      },
+    ],
+    images: [
+      {
+        url: { type: String },
+        width: { type: Number },
+        height: { type: Number },
+      },
+    ],
   },
 });
 
