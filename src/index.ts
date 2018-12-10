@@ -65,6 +65,20 @@ app.use(passport.initialize());
 app.use(passport.session());
 passport.use(jwtStrategy);
 
+const spotifyInstancesMiddleware = (req, res, next) => {
+  if (req.user) {
+    if (!getSpotifyInstance(req.user._id)) {
+      setSpotifyInstance(
+        req.user._id,
+        req.user.expires,
+        req.user.accessToken,
+        req.user.refreshToken,
+      );
+    }
+  }
+  next();
+};
+
 app.use(
   '/graphql',
   graphqlHTTP(async (req) => {
@@ -77,13 +91,26 @@ app.use(
       decodedToken = jwt.verify(token, process.env.JWT_SECRET);
     } catch {}
 
+    const user =
+      decodedToken !== null
+        ? await User.findOne({ spotifyId: decodedToken.spotifyId })
+        : null;
+
+    if (user !== null) {
+      if (!getSpotifyInstance(user._id)) {
+        setSpotifyInstance(
+          user._id,
+          user.expires,
+          user.accessToken,
+          user.refreshToken,
+        );
+      }
+    }
+
     return {
       schema: schema,
       context: {
-        user:
-          decodedToken !== null
-            ? await User.findOne({ spotifyId: decodedToken.spotifyId })
-            : null,
+        user,
       },
       graphiql: true,
     };
@@ -184,19 +211,8 @@ app.post('/auth', (req, res) => {
   );
 });
 
-const spotifyInstancesMiddleware = (req, res, next) => {
-  if (!getSpotifyInstance(req.user._id)) {
-    setSpotifyInstance(
-      req.user._id,
-      req.user.expires,
-      req.user.accessToken,
-      req.user.refreshToken,
-    );
-  }
-  next();
-};
-
 app.get('/spotifyInstances', (req, res) => {
+  console.log(req.user);
   console.log(spotifyInstances);
   res.json({ result: true });
 });

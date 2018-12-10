@@ -8,6 +8,7 @@ const Track = {
   name: { type: String },
   artists: [
     {
+      id: { type: String },
       name: { type: String },
     },
   ],

@@ -5,6 +5,7 @@ import {
   MutationToAddTrackToQueueResolver,
 } from '../typings/generated-graphql-schema-types';
 import Room from '../models/room';
+import { getSpotifyInstance } from '../spotify';
 
 const rooms: QueryToRoomsResolver = async (root, input, { user }) => {
   return await Room.find({})
@@ -42,6 +43,33 @@ const addTrackToQueue: MutationToAddTrackToQueueResolver = async (
   { user },
 ) => {
   console.log(input);
+  console.log(user);
+  getSpotifyInstance(user._id)
+    .api.getTracks([input.id])
+    .then(({ body }) => {
+      console.log(body);
+
+      const track = body.tracks[0];
+
+      if (!track) {
+        return false;
+      }
+
+      const id = track.id;
+      const name = track.name;
+      const artists = track.artists.map((artist) => {
+        return {
+          id: artist.id,
+          name: artist.name,
+        };
+      });
+      const images = track.album.images;
+
+      // Insert track to correct queue
+    })
+    .catch((error) => {
+      console.error('Error: ', error);
+    });
   return true;
 };
 

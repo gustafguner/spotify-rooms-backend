@@ -1,8 +1,13 @@
 export interface ITrack {
   id: string;
   name: string;
-  artists: string[];
+  artists: Artist[];
   images: SpotifyImage[];
+}
+
+interface Artist {
+  id: string;
+  name: string;
 }
 
 interface SpotifyImage {

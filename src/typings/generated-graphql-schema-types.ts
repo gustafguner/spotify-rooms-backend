@@ -45,6 +45,7 @@ export interface Track {
 }
 
 export interface Artist {
+  id?: string;
   name?: string;
 }
 
@@ -210,7 +211,12 @@ export interface TrackToImagesResolver<TParent = any, TResult = any> {
 }
 
 export interface ArtistTypeResolver<TParent = any> {
+  id?: ArtistToIdResolver<TParent>;
   name?: ArtistToNameResolver<TParent>;
+}
+
+export interface ArtistToIdResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface ArtistToNameResolver<TParent = any, TResult = any> {
