@@ -65,7 +65,8 @@ export interface CreateRoomInput {
 }
 
 export interface AddTrackToQueueInput {
-  id: string;
+  roomId: string;
+  trackId: string;
 }
 
 /*********************************

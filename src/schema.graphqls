@@ -57,5 +57,6 @@ input CreateRoomInput {
 }
 
 input AddTrackToQueueInput {
-  id: String!
+  roomId: ID!
+  trackId: String!
 }
