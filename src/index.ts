@@ -244,6 +244,13 @@ app.get(
 
           await user.save();
 
+          setSpotifyInstance(
+            user._id,
+            expires,
+            access_token,
+            user.refreshToken,
+          );
+
           res.json(body);
         },
         (error) => {
