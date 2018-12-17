@@ -42,6 +42,7 @@ export interface Track {
   name?: string;
   artists?: Array<Artist | null>;
   images?: Array<SpotifyImage | null>;
+  voters?: Array<User | null>;
 }
 
 export interface Artist {
@@ -193,6 +194,7 @@ export interface TrackTypeResolver<TParent = any> {
   name?: TrackToNameResolver<TParent>;
   artists?: TrackToArtistsResolver<TParent>;
   images?: TrackToImagesResolver<TParent>;
+  voters?: TrackToVotersResolver<TParent>;
 }
 
 export interface TrackToIdResolver<TParent = any, TResult = any> {
@@ -208,6 +210,10 @@ export interface TrackToArtistsResolver<TParent = any, TResult = any> {
 }
 
 export interface TrackToImagesResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface TrackToVotersResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
