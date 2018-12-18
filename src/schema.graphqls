@@ -1,6 +1,7 @@
 schema {
   query: Query
   mutation: Mutation
+  subscription: Subscription
 }
 
 type Query {
@@ -13,6 +14,10 @@ type Mutation {
   createRoom(input: CreateRoomInput!): Boolean!
   addTrackToQueue(input: AddTrackToQueueInput!): Boolean!
   voteForTrack(input: VoteForTrackInput!): Boolean!
+}
+
+type Subscription {
+  queue(input: QueueSubscriptionInput!): [Track]
 }
 
 type User {
@@ -66,4 +71,8 @@ input AddTrackToQueueInput {
 input VoteForTrackInput {
   roomId: ID!
   trackId: String!
+}
+
+input QueueSubscriptionInput {
+  roomId: ID!
 }

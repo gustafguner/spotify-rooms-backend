@@ -1,17 +1,19 @@
 import * as express from 'express';
 import * as mongoose from 'mongoose';
-import * as request from 'request';
 import * as queryString from 'query-string';
 import * as graphqlHTTP from 'express-graphql';
+import { ApolloServer, gql } from 'apollo-server-express';
 import * as bodyParser from 'body-parser';
 import * as cors from 'cors';
 import * as dotenv from 'dotenv';
 import * as passport from 'passport';
 import * as jwt from 'jsonwebtoken';
 const SpotifyWebApi = require('spotify-web-api-node');
-
 const morgan = require('morgan');
 dotenv.config();
+const PORT = process.env.PORT || 8888;
+import { execute, subscribe } from 'graphql';
+import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { schema } from './schema';
 
 import { jwtStrategy } from './config/passport';
@@ -23,6 +25,7 @@ import {
   setSpotifyInstance,
   getSpotifyInstance,
 } from './spotify';
+import { createServer } from 'http';
 
 const scopes = [
   'user-read-private',
@@ -79,9 +82,9 @@ const spotifyInstancesMiddleware = (req, res, next) => {
   next();
 };
 
-app.use(
-  '/graphql',
-  graphqlHTTP(async (req) => {
+const server = new ApolloServer({
+  schema,
+  context: async ({ req }) => {
     const authorization = req.headers.authorization;
     const token = authorization ? authorization.substring(7) : null;
 
@@ -108,14 +111,13 @@ app.use(
     }
 
     return {
-      schema: schema,
-      context: {
-        user,
-      },
-      graphiql: true,
+      user,
     };
-  }),
-);
+  },
+  playground: {
+    subscriptionEndpoint: '/subscriptions',
+  },
+});
 
 app.get('/spotifyAuthorizeUrl', (req, res) => {
   res.json({
@@ -260,6 +262,22 @@ app.get(
   },
 );
 
-const port = process.env.PORT || 8888;
-console.log('Server running on port ' + port);
-app.listen(port);
+server.applyMiddleware({ app });
+
+const ws = createServer(app);
+
+ws.listen(PORT, () => {
+  console.log(`Server listenting on http://localhost:${PORT}`);
+  new SubscriptionServer(
+    {
+      keepAlive: 10_000,
+      execute,
+      subscribe,
+      schema,
+    },
+    {
+      server: ws,
+      path: '/subscriptions',
+    },
+  );
+});

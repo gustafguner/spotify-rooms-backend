@@ -7,6 +7,7 @@ import {
   createRoom,
   addTrackToQueue,
   voteForTrack,
+  subscribeToQueue,
 } from './rooms';
 
 const resolvers: Resolver = {
@@ -19,6 +20,9 @@ const resolvers: Resolver = {
     createRoom,
     addTrackToQueue,
     voteForTrack,
+  },
+  Subscription: {
+    queue: subscribeToQueue,
   },
 };
 

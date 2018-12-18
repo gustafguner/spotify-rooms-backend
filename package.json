@@ -6,15 +6,18 @@
   "author": "Gustaf Gunér <gustaf@guner.se>",
   "license": "MIT",
   "scripts": {
-    "watch": "nodemon --watch 'src/**/*.ts' --ignore 'src/**/*.spec.ts' --exec yarn generate-typing & 'ts-node' src/index.ts",
+    "dev": "ts-node src/index.ts",
+    "watch": "concurrently -n \"ts-node,graphqls\" \"nodemon -e ts -w ./src -x yarn dev\" \"nodemon -e graphqls -w ./src -x yarn generate-typing\"",
     "generate-typing": "ts-node utils/generate-typing.ts"
   },
   "dependencies": {
     "@types/jsonwebtoken": "^8.3.0",
     "@types/morgan": "^1.7.35",
     "@types/passport": "^0.4.7",
+    "apollo-server-express": "^2.3.1",
     "await-to-js": "^2.1.1",
     "body-parser": "^1.18.3",
+    "concurrently": "^4.1.0",
     "cors": "^2.8.5",
     "dotenv": "^6.1.0",
     "express": "^4.16.4",
@@ -22,7 +25,9 @@
     "express-jwt": "^5.3.1",
     "fs": "^0.0.1-security",
     "graphql": "^14.0.2",
+    "graphql-subscriptions": "^1.0.0",
     "graphql-tools": "^4.0.3",
+    "http": "^0.0.0",
     "jsonwebtoken": "^8.4.0",
     "mongoose": "^5.3.12",
     "morgan": "^1.9.1",
@@ -32,7 +37,8 @@
     "path": "^0.12.7",
     "query-string": "^6.2.0",
     "request": "^2.88.0",
-    "spotify-web-api-node": "^4.0.0"
+    "spotify-web-api-node": "^4.0.0",
+    "subscriptions-transport-ws": "^0.9.15"
   },
   "devDependencies": {
     "@types/body-parser": "^1.17.0",

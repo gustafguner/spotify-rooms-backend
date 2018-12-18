@@ -4,12 +4,17 @@ import {
   MutationToCreateRoomResolver,
   MutationToAddTrackToQueueResolver,
   MutationToVoteForTrackResolver,
+  SubscriptionToQueueResolver,
 } from '../typings/generated-graphql-schema-types';
+import { PubSub, withFilter } from 'graphql-subscriptions';
 import Room from '../models/room';
 import { getSpotifyInstance } from '../spotify';
 import to from 'await-to-js';
 
+const pubsub = new PubSub();
+
 const rooms: QueryToRoomsResolver = async (root, input, { user }) => {
+  console.log(user);
   return await Room.find({})
     .populate('host')
     .exec();
@@ -87,6 +92,7 @@ const addTrackToQueue: MutationToAddTrackToQueueResolver = async (
         return false;
       }
 
+      pubsub.publish('queue-track-added', { roomId: foundRoom._id });
       return true;
     })
     .catch((error) => {
@@ -127,4 +133,25 @@ const voteForTrack: MutationToVoteForTrackResolver = async (
   return true;
 };
 
-export { rooms, room, createRoom, addTrackToQueue, voteForTrack };
+const subscribeToQueue: SubscriptionToQueueResolver = {
+  subscribe: withFilter(
+    () => pubsub.asyncIterator('queue-track-added'),
+    (payload, { input }) => {
+      console.log(payload.roomId);
+      console.log(typeof payload.roomId);
+      console.log(input.roomId);
+      console.log(typeof input.roomId);
+      console.log(payload.roomId == input.roomId);
+      return payload.roomId == input.roomId;
+    },
+  ),
+};
+
+export {
+  rooms,
+  room,
+  createRoom,
+  addTrackToQueue,
+  voteForTrack,
+  subscribeToQueue,
+};

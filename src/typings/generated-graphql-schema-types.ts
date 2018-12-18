@@ -76,6 +76,14 @@ export interface VoteForTrackInput {
   trackId: string;
 }
 
+export interface Subscription {
+  queue?: Array<Track | null>;
+}
+
+export interface QueueSubscriptionInput {
+  roomId: string;
+}
+
 /*********************************
  *                               *
  *         TYPE RESOLVERS        *
@@ -94,6 +102,7 @@ export interface Resolver {
   Artist?: ArtistTypeResolver;
   SpotifyImage?: SpotifyImageTypeResolver;
   Mutation?: MutationTypeResolver;
+  Subscription?: SubscriptionTypeResolver;
 }
 export interface QueryTypeResolver<TParent = any> {
   user?: QueryToUserResolver<TParent>;
@@ -279,4 +288,16 @@ export interface MutationToVoteForTrackArgs {
 }
 export interface MutationToVoteForTrackResolver<TParent = any, TResult = any> {
   (parent: TParent, args: MutationToVoteForTrackArgs, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface SubscriptionTypeResolver<TParent = any> {
+  queue?: SubscriptionToQueueResolver<TParent>;
+}
+
+export interface SubscriptionToQueueArgs {
+  input: QueueSubscriptionInput;
+}
+export interface SubscriptionToQueueResolver<TParent = any, TResult = any> {
+  resolve?: (parent: TParent, args: SubscriptionToQueueArgs, context: any, info: GraphQLResolveInfo) => TResult;
+  subscribe: (parent: TParent, args: SubscriptionToQueueArgs, context: any, info: GraphQLResolveInfo) => AsyncIterator<TResult>;
 }
