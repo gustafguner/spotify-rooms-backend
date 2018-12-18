@@ -110,7 +110,14 @@ const voteForTrack: MutationToVoteForTrackResolver = async (
 
   foundRoom.queue.forEach((track) => {
     if (track.id === input.trackId) {
-      track.voters.push(user.id);
+      const userIndex = track.voters.indexOf(user._id);
+
+      if (userIndex === -1) {
+        track.voters.push(user._id);
+      } else {
+        track.voters.splice(userIndex, 1);
+      }
+
       return;
     }
   });
