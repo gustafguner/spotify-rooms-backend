@@ -19,6 +19,7 @@ const Track = {
       height: { type: Number },
     },
   ],
+  voters: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }] },
 };
 
 export const RoomSchema = new mongoose.Schema({

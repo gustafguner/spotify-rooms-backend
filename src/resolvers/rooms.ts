@@ -3,6 +3,7 @@ import {
   QueryToRoomResolver,
   MutationToCreateRoomResolver,
   MutationToAddTrackToQueueResolver,
+  MutationToVoteForTrackResolver,
 } from '../typings/generated-graphql-schema-types';
 import Room from '../models/room';
 import { getSpotifyInstance } from '../spotify';
@@ -15,8 +16,9 @@ const rooms: QueryToRoomsResolver = async (root, input, { user }) => {
 };
 
 const room: QueryToRoomResolver = async (root, input, { user }) => {
-  return await Room.findOne({ _id: input.query })
+  return await Room.findById(input.query)
     .populate('host')
+    .populate('queue.voters')
     .exec();
 };
 
@@ -93,4 +95,29 @@ const addTrackToQueue: MutationToAddTrackToQueueResolver = async (
   return true;
 };
 
-export { rooms, room, createRoom, addTrackToQueue };
+const voteForTrack: MutationToVoteForTrackResolver = async (
+  root,
+  { input },
+  { user },
+) => {
+  console.log('Room ID: ' + input.roomId);
+  console.log('Track ID: ' + input.trackId);
+  const [err, foundRoom] = await to(Room.findById(input.roomId).exec());
+  if (!foundRoom || err) {
+    // TODO: Also check that user.id is in users/listeners of the room (i.e. not voting for a track in another room)
+    return false;
+  }
+
+  foundRoom.queue.forEach((track) => {
+    if (track.id === input.trackId) {
+      track.voters.push(user.id);
+      return;
+    }
+  });
+
+  foundRoom.save();
+
+  return true;
+};
+
+export { rooms, room, createRoom, addTrackToQueue, voteForTrack };

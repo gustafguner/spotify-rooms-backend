@@ -12,6 +12,7 @@ type Query {
 type Mutation {
   createRoom(input: CreateRoomInput!): Boolean!
   addTrackToQueue(input: AddTrackToQueueInput!): Boolean!
+  voteForTrack(input: VoteForTrackInput!): Boolean!
 }
 
 type User {
@@ -58,6 +59,11 @@ input CreateRoomInput {
 }
 
 input AddTrackToQueueInput {
+  roomId: ID!
+  trackId: String!
+}
+
+input VoteForTrackInput {
   roomId: ID!
   trackId: String!
 }

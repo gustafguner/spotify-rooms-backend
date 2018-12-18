@@ -1,8 +1,9 @@
 export interface ITrack {
-  trackId: string;
+  id: string;
   name: string;
   artists: Artist[];
   images: SpotifyImage[];
+  voters: string[];
 }
 
 interface Artist {

@@ -59,6 +59,7 @@ export interface SpotifyImage {
 export interface Mutation {
   createRoom: boolean;
   addTrackToQueue: boolean;
+  voteForTrack: boolean;
 }
 
 export interface CreateRoomInput {
@@ -66,6 +67,11 @@ export interface CreateRoomInput {
 }
 
 export interface AddTrackToQueueInput {
+  roomId: string;
+  trackId: string;
+}
+
+export interface VoteForTrackInput {
   roomId: string;
   trackId: string;
 }
@@ -251,6 +257,7 @@ export interface SpotifyImageToHeightResolver<TParent = any, TResult = any> {
 export interface MutationTypeResolver<TParent = any> {
   createRoom?: MutationToCreateRoomResolver<TParent>;
   addTrackToQueue?: MutationToAddTrackToQueueResolver<TParent>;
+  voteForTrack?: MutationToVoteForTrackResolver<TParent>;
 }
 
 export interface MutationToCreateRoomArgs {
@@ -265,4 +272,11 @@ export interface MutationToAddTrackToQueueArgs {
 }
 export interface MutationToAddTrackToQueueResolver<TParent = any, TResult = any> {
   (parent: TParent, args: MutationToAddTrackToQueueArgs, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface MutationToVoteForTrackArgs {
+  input: VoteForTrackInput;
+}
+export interface MutationToVoteForTrackResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: MutationToVoteForTrackArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
