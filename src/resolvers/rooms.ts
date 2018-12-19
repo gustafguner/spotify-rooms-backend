@@ -4,7 +4,7 @@ import {
   MutationToCreateRoomResolver,
   MutationToAddTrackToQueueResolver,
   MutationToVoteForTrackResolver,
-  SubscriptionToQueueResolver,
+  SubscriptionToTrackAddedToQueueResolver,
 } from '../typings/generated-graphql-schema-types';
 import { PubSub, withFilter } from 'graphql-subscriptions';
 import Room from '../models/room';
@@ -73,18 +73,20 @@ const addTrackToQueue: MutationToAddTrackToQueueResolver = async (
       });
       const images = track.album.images;
 
+      const trackToAdd = {
+        id,
+        name,
+        artists,
+        images,
+      };
+
       [err, foundRoom] = await to(Room.findById(input.roomId).exec());
 
       if (!foundRoom || err) {
         return false;
       }
 
-      foundRoom.queue.push({
-        id,
-        name,
-        artists,
-        images,
-      });
+      foundRoom.queue.push(trackToAdd);
 
       [err] = await to(foundRoom.save());
 
@@ -92,8 +94,11 @@ const addTrackToQueue: MutationToAddTrackToQueueResolver = async (
         return false;
       }
 
-      pubsub.publish('queue-track-added', { roomId: foundRoom._id });
-      return true;
+      pubsub.publish('TRACK_ADDED_TO_QUEUE', {
+        trackAddedToQueue: trackToAdd,
+        roomId: foundRoom._id,
+      });
+      return trackToAdd;
     })
     .catch((error) => {
       console.error('Error: ', error);
@@ -133,9 +138,9 @@ const voteForTrack: MutationToVoteForTrackResolver = async (
   return true;
 };
 
-const subscribeToQueue: SubscriptionToQueueResolver = {
+const subscribeToTrackAddedToQueue: SubscriptionToTrackAddedToQueueResolver = {
   subscribe: withFilter(
-    () => pubsub.asyncIterator('queue-track-added'),
+    () => pubsub.asyncIterator('TRACK_ADDED_TO_QUEUE'),
     (payload, { input }) => {
       console.log(payload.roomId);
       console.log(typeof payload.roomId);
@@ -153,5 +158,5 @@ export {
   createRoom,
   addTrackToQueue,
   voteForTrack,
-  subscribeToQueue,
+  subscribeToTrackAddedToQueue,
 };

@@ -58,7 +58,7 @@ export interface SpotifyImage {
 
 export interface Mutation {
   createRoom: boolean;
-  addTrackToQueue: boolean;
+  addTrackToQueue: Track;
   voteForTrack: boolean;
 }
 
@@ -77,10 +77,10 @@ export interface VoteForTrackInput {
 }
 
 export interface Subscription {
-  queue?: Array<Track | null>;
+  trackAddedToQueue?: Track;
 }
 
-export interface QueueSubscriptionInput {
+export interface TrackAddedToQueueInput {
   roomId: string;
 }
 
@@ -291,13 +291,13 @@ export interface MutationToVoteForTrackResolver<TParent = any, TResult = any> {
 }
 
 export interface SubscriptionTypeResolver<TParent = any> {
-  queue?: SubscriptionToQueueResolver<TParent>;
+  trackAddedToQueue?: SubscriptionToTrackAddedToQueueResolver<TParent>;
 }
 
-export interface SubscriptionToQueueArgs {
-  input: QueueSubscriptionInput;
+export interface SubscriptionToTrackAddedToQueueArgs {
+  input: TrackAddedToQueueInput;
 }
-export interface SubscriptionToQueueResolver<TParent = any, TResult = any> {
-  resolve?: (parent: TParent, args: SubscriptionToQueueArgs, context: any, info: GraphQLResolveInfo) => TResult;
-  subscribe: (parent: TParent, args: SubscriptionToQueueArgs, context: any, info: GraphQLResolveInfo) => AsyncIterator<TResult>;
+export interface SubscriptionToTrackAddedToQueueResolver<TParent = any, TResult = any> {
+  resolve?: (parent: TParent, args: SubscriptionToTrackAddedToQueueArgs, context: any, info: GraphQLResolveInfo) => TResult;
+  subscribe: (parent: TParent, args: SubscriptionToTrackAddedToQueueArgs, context: any, info: GraphQLResolveInfo) => AsyncIterator<TResult>;
 }
