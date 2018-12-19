@@ -43,6 +43,7 @@ export interface Track {
   artists?: Array<Artist | null>;
   images?: Array<SpotifyImage | null>;
   voters?: Array<User | null>;
+  timestamp?: string;
 }
 
 export interface Artist {
@@ -78,9 +79,14 @@ export interface VoteForTrackInput {
 
 export interface Subscription {
   trackAddedToQueue?: Track;
+  trackVotedOnInQueue?: Track;
 }
 
 export interface TrackAddedToQueueInput {
+  roomId: string;
+}
+
+export interface TrackVotedOnInQueue {
   roomId: string;
 }
 
@@ -210,6 +216,7 @@ export interface TrackTypeResolver<TParent = any> {
   artists?: TrackToArtistsResolver<TParent>;
   images?: TrackToImagesResolver<TParent>;
   voters?: TrackToVotersResolver<TParent>;
+  timestamp?: TrackToTimestampResolver<TParent>;
 }
 
 export interface TrackToIdResolver<TParent = any, TResult = any> {
@@ -229,6 +236,10 @@ export interface TrackToImagesResolver<TParent = any, TResult = any> {
 }
 
 export interface TrackToVotersResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface TrackToTimestampResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
@@ -292,6 +303,7 @@ export interface MutationToVoteForTrackResolver<TParent = any, TResult = any> {
 
 export interface SubscriptionTypeResolver<TParent = any> {
   trackAddedToQueue?: SubscriptionToTrackAddedToQueueResolver<TParent>;
+  trackVotedOnInQueue?: SubscriptionToTrackVotedOnInQueueResolver<TParent>;
 }
 
 export interface SubscriptionToTrackAddedToQueueArgs {
@@ -300,4 +312,12 @@ export interface SubscriptionToTrackAddedToQueueArgs {
 export interface SubscriptionToTrackAddedToQueueResolver<TParent = any, TResult = any> {
   resolve?: (parent: TParent, args: SubscriptionToTrackAddedToQueueArgs, context: any, info: GraphQLResolveInfo) => TResult;
   subscribe: (parent: TParent, args: SubscriptionToTrackAddedToQueueArgs, context: any, info: GraphQLResolveInfo) => AsyncIterator<TResult>;
+}
+
+export interface SubscriptionToTrackVotedOnInQueueArgs {
+  input: TrackVotedOnInQueue;
+}
+export interface SubscriptionToTrackVotedOnInQueueResolver<TParent = any, TResult = any> {
+  resolve?: (parent: TParent, args: SubscriptionToTrackVotedOnInQueueArgs, context: any, info: GraphQLResolveInfo) => TResult;
+  subscribe: (parent: TParent, args: SubscriptionToTrackVotedOnInQueueArgs, context: any, info: GraphQLResolveInfo) => AsyncIterator<TResult>;
 }

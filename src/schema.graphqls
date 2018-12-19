@@ -18,6 +18,7 @@ type Mutation {
 
 type Subscription {
   trackAddedToQueue(input: TrackAddedToQueueInput!): Track
+  trackVotedOnInQueue(input: TrackVotedOnInQueue!): Track
 }
 
 type User {
@@ -46,6 +47,7 @@ type Track {
   artists: [Artist]
   images: [SpotifyImage]
   voters: [User]
+  timestamp: String
 }
 
 type Artist {
@@ -74,5 +76,9 @@ input VoteForTrackInput {
 }
 
 input TrackAddedToQueueInput {
+  roomId: ID!
+}
+
+input TrackVotedOnInQueue {
   roomId: ID!
 }

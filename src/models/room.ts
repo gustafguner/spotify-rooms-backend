@@ -20,6 +20,7 @@ const Track = {
     },
   ],
   voters: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }] },
+  timestamp: { type: Date, default: Date.now },
 };
 
 export const RoomSchema = new mongoose.Schema({

@@ -5,6 +5,7 @@ import {
   MutationToAddTrackToQueueResolver,
   MutationToVoteForTrackResolver,
   SubscriptionToTrackAddedToQueueResolver,
+  SubscriptionToTrackVotedOnInQueueResolver,
 } from '../typings/generated-graphql-schema-types';
 import { PubSub, withFilter } from 'graphql-subscriptions';
 import Room from '../models/room';
@@ -78,6 +79,8 @@ const addTrackToQueue: MutationToAddTrackToQueueResolver = async (
         name,
         artists,
         images,
+        voters: [],
+        timestamp: Date.now(),
       };
 
       [err, foundRoom] = await to(Room.findById(input.roomId).exec());
@@ -98,6 +101,7 @@ const addTrackToQueue: MutationToAddTrackToQueueResolver = async (
         trackAddedToQueue: trackToAdd,
         roomId: foundRoom._id,
       });
+
       return trackToAdd;
     })
     .catch((error) => {
@@ -111,36 +115,53 @@ const voteForTrack: MutationToVoteForTrackResolver = async (
   { input },
   { user },
 ) => {
-  console.log('Room ID: ' + input.roomId);
-  console.log('Track ID: ' + input.trackId);
   const [err, foundRoom] = await to(Room.findById(input.roomId).exec());
   if (!foundRoom || err) {
     // TODO: Also check that user.id is in users/listeners of the room (i.e. not voting for a track in another room)
     return false;
   }
 
-  foundRoom.queue.forEach((track) => {
-    if (track.id === input.trackId) {
-      const userIndex = track.voters.indexOf(user._id);
+  const queueIndex = foundRoom.queue.findIndex((t) => t.id === input.trackId);
+  if (queueIndex === -1) {
+    return false;
+  }
 
-      if (userIndex === -1) {
-        track.voters.push(user._id);
-      } else {
-        track.voters.splice(userIndex, 1);
-      }
+  const track = foundRoom.queue[queueIndex];
+  const i = track.voters.indexOf(user._id);
+  if (i === -1) {
+    track.voters.push(user._id);
+  } else {
+    track.voters.splice(i, 1);
+  }
 
-      return;
-    }
+  foundRoom[queueIndex] = track;
+
+  pubsub.publish('TRACK_VOTED_ON_IN_QUEUE', {
+    trackVotedOnInQueue: track,
+    roomId: foundRoom._id,
   });
 
   foundRoom.save();
-
   return true;
 };
 
 const subscribeToTrackAddedToQueue: SubscriptionToTrackAddedToQueueResolver = {
   subscribe: withFilter(
     () => pubsub.asyncIterator('TRACK_ADDED_TO_QUEUE'),
+    (payload, { input }) => {
+      console.log(payload.roomId);
+      console.log(typeof payload.roomId);
+      console.log(input.roomId);
+      console.log(typeof input.roomId);
+      console.log(payload.roomId == input.roomId);
+      return payload.roomId == input.roomId;
+    },
+  ),
+};
+
+const subscribeToTrackVotedOnInQueue: SubscriptionToTrackVotedOnInQueueResolver = {
+  subscribe: withFilter(
+    () => pubsub.asyncIterator('TRACK_VOTED_ON_IN_QUEUE'),
     (payload, { input }) => {
       console.log(payload.roomId);
       console.log(typeof payload.roomId);
@@ -159,4 +180,5 @@ export {
   addTrackToQueue,
   voteForTrack,
   subscribeToTrackAddedToQueue,
+  subscribeToTrackVotedOnInQueue,
 };

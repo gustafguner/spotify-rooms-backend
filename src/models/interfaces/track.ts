@@ -4,6 +4,7 @@ export interface ITrack {
   artists: Artist[];
   images: SpotifyImage[];
   voters: string[];
+  timestamp: Date;
 }
 
 interface Artist {

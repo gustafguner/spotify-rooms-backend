@@ -26,6 +26,7 @@ import {
   getSpotifyInstance,
 } from './spotify';
 import { createServer } from 'http';
+import to from 'await-to-js';
 
 const scopes = [
   'user-read-private',
@@ -201,14 +202,28 @@ app.post('/auth', (req, res) => {
   tempSpotifyApi.setAccessToken(accessToken);
 
   tempSpotifyApi.getMe().then(
-    ({ body }) => {
+    async ({ body }) => {
       const token = jwt.sign({ spotifyId: body.id }, process.env.JWT_SECRET, {
         expiresIn: 604800, // 1 week in seconds
       });
-      res.json({ token: token });
+
+      const [err, user] = await to(User.findOne({ spotifyId: body.id }).exec());
+
+      if (err) {
+        return res.status(500).json({ message: 'Unexpected server error.' });
+      }
+
+      res.json({
+        token: token,
+        user: {
+          id: user._id,
+          spotifyId: user.spotifyId,
+          displayName: user.displayName,
+        },
+      });
     },
     (error) => {
-      res.status(401).json({ message: 'Authentication error.' });
+      return res.status(401).json({ message: 'Authentication error.' });
     },
   );
 });
