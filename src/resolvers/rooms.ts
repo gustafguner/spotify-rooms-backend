@@ -6,6 +6,7 @@ import {
   MutationToVoteForTrackResolver,
   SubscriptionToTrackAddedToQueueResolver,
   SubscriptionToTrackVotedOnInQueueResolver,
+  SubscriptionToTrackRemovedFromQueueResolver,
 } from '../typings/generated-graphql-schema-types';
 import { PubSub, withFilter } from 'graphql-subscriptions';
 import Room from '../models/room';
@@ -136,8 +137,10 @@ const voteForTrack: MutationToVoteForTrackResolver = async (
 
   foundRoom[queueIndex] = track;
 
+  await Room.populate(foundRoom, { path: 'queue.voters' });
+
   pubsub.publish('TRACK_VOTED_ON_IN_QUEUE', {
-    trackVotedOnInQueue: track,
+    trackVotedOnInQueue: foundRoom[queueIndex],
     roomId: foundRoom._id,
   });
 
@@ -149,11 +152,6 @@ const subscribeToTrackAddedToQueue: SubscriptionToTrackAddedToQueueResolver = {
   subscribe: withFilter(
     () => pubsub.asyncIterator('TRACK_ADDED_TO_QUEUE'),
     (payload, { input }) => {
-      console.log(payload.roomId);
-      console.log(typeof payload.roomId);
-      console.log(input.roomId);
-      console.log(typeof input.roomId);
-      console.log(payload.roomId == input.roomId);
       return payload.roomId == input.roomId;
     },
   ),
@@ -163,11 +161,15 @@ const subscribeToTrackVotedOnInQueue: SubscriptionToTrackVotedOnInQueueResolver 
   subscribe: withFilter(
     () => pubsub.asyncIterator('TRACK_VOTED_ON_IN_QUEUE'),
     (payload, { input }) => {
-      console.log(payload.roomId);
-      console.log(typeof payload.roomId);
-      console.log(input.roomId);
-      console.log(typeof input.roomId);
-      console.log(payload.roomId == input.roomId);
+      return payload.roomId == input.roomId;
+    },
+  ),
+};
+
+const subscribeToTrackRemovedFromQueue: SubscriptionToTrackRemovedFromQueueResolver = {
+  subscribe: withFilter(
+    () => pubsub.asyncIterator('TRACK_REMOVED_FROM_QUEUE'),
+    (payload, { input }) => {
       return payload.roomId == input.roomId;
     },
   ),
@@ -181,4 +183,5 @@ export {
   voteForTrack,
   subscribeToTrackAddedToQueue,
   subscribeToTrackVotedOnInQueue,
+  subscribeToTrackRemovedFromQueue,
 };

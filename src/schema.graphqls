@@ -18,7 +18,8 @@ type Mutation {
 
 type Subscription {
   trackAddedToQueue(input: TrackAddedToQueueInput!): Track
-  trackVotedOnInQueue(input: TrackVotedOnInQueue!): Track
+  trackVotedOnInQueue(input: TrackVotedOnInQueueInput!): Track
+  trackRemovedFromQueue(input: TrackRemovedFromQueueInput!): Track
 }
 
 type User {
@@ -79,6 +80,10 @@ input TrackAddedToQueueInput {
   roomId: ID!
 }
 
-input TrackVotedOnInQueue {
+input TrackVotedOnInQueueInput {
+  roomId: ID!
+}
+
+input TrackRemovedFromQueueInput {
   roomId: ID!
 }
