@@ -8,6 +8,7 @@ const createSpotifyWebApi = (accessToken?: string, refreshToken?: string) => {
     clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
     redirectUri: process.env.SPOTIFY_REDIRECT_URI,
   });
+
   if (accessToken) {
     api.setAccessToken(accessToken);
   }

@@ -20,6 +20,7 @@ type Subscription {
   trackAddedToQueue(input: TrackAddedToQueueInput!): Track
   trackVotedOnInQueue(input: TrackVotedOnInQueueInput!): Track
   trackRemovedFromQueue(input: TrackRemovedFromQueueInput!): Track
+  playTrack(input: PlayTrackInput!): Track
 }
 
 type User {
@@ -44,6 +45,7 @@ type Room {
 
 type Track {
   id: String
+  uri: String
   name: String
   artists: [Artist]
   images: [SpotifyImage]
@@ -85,5 +87,9 @@ input TrackVotedOnInQueueInput {
 }
 
 input TrackRemovedFromQueueInput {
+  roomId: ID!
+}
+
+input PlayTrackInput {
   roomId: ID!
 }

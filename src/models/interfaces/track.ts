@@ -1,5 +1,6 @@
 export interface ITrack {
   id: string;
+  uri: string;
   name: string;
   artists: Artist[];
   images: SpotifyImage[];

@@ -5,6 +5,7 @@ import { ITrack } from './interfaces/track';
 
 const Track = {
   id: { type: String },
+  uri: { type: String },
   name: { type: String },
   artists: [
     {

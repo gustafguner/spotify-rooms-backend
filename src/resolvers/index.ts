@@ -9,6 +9,8 @@ import {
   voteForTrack,
   subscribeToTrackAddedToQueue,
   subscribeToTrackVotedOnInQueue,
+  subscribeToTrackRemovedFromQueue,
+  subscribeToPlayTrack,
 } from './rooms';
 
 const resolvers: Resolver = {
@@ -25,6 +27,8 @@ const resolvers: Resolver = {
   Subscription: {
     trackAddedToQueue: subscribeToTrackAddedToQueue,
     trackVotedOnInQueue: subscribeToTrackVotedOnInQueue,
+    trackRemovedFromQueue: subscribeToTrackRemovedFromQueue,
+    playTrack: subscribeToPlayTrack,
   },
 };
 

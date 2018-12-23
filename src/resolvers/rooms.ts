@@ -7,6 +7,7 @@ import {
   SubscriptionToTrackAddedToQueueResolver,
   SubscriptionToTrackVotedOnInQueueResolver,
   SubscriptionToTrackRemovedFromQueueResolver,
+  SubscriptionToPlayTrackResolver,
 } from '../typings/generated-graphql-schema-types';
 import { PubSub, withFilter } from 'graphql-subscriptions';
 import Room from '../models/room';
@@ -52,8 +53,6 @@ const addTrackToQueue: MutationToAddTrackToQueueResolver = async (
   { input },
   { user },
 ) => {
-  console.log(input);
-  console.log(user);
   getSpotifyInstance(user._id)
     .api.getTracks([input.trackId])
     .then(async ({ body }) => {
@@ -65,18 +64,22 @@ const addTrackToQueue: MutationToAddTrackToQueueResolver = async (
         return false;
       }
 
+      console.log(track);
+
       const id = track.id;
+      const uri = track.uri;
       const name = track.name;
-      const artists = track.artists.map((artist) => {
-        return {
-          id: artist.id,
-          name: artist.name,
-        };
-      });
+      const artists = track.artists.map((artist) => ({
+        id: artist.id,
+        name: artist.name,
+      }));
       const images = track.album.images;
+
+      console.log('Duration: ' + track.duration_ms);
 
       const trackToAdd = {
         id,
+        uri,
         name,
         artists,
         images,
@@ -97,6 +100,15 @@ const addTrackToQueue: MutationToAddTrackToQueueResolver = async (
       if (err) {
         return false;
       }
+
+      setTimeout(() => {
+        console.log('You added the track ', name);
+      }, 5000);
+
+      pubsub.publish('PLAY_TRACK', {
+        playTrack: trackToAdd,
+        roomId: foundRoom._id,
+      });
 
       pubsub.publish('TRACK_ADDED_TO_QUEUE', {
         trackAddedToQueue: trackToAdd,
@@ -175,6 +187,15 @@ const subscribeToTrackRemovedFromQueue: SubscriptionToTrackRemovedFromQueueResol
   ),
 };
 
+const subscribeToPlayTrack: SubscriptionToPlayTrackResolver = {
+  subscribe: withFilter(
+    () => pubsub.asyncIterator('PLAY_TRACK'),
+    (payload, { input }) => {
+      return payload.roomId == input.roomId;
+    },
+  ),
+};
+
 export {
   rooms,
   room,
@@ -184,4 +205,5 @@ export {
   subscribeToTrackAddedToQueue,
   subscribeToTrackVotedOnInQueue,
   subscribeToTrackRemovedFromQueue,
+  subscribeToPlayTrack,
 };
