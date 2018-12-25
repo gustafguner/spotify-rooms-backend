@@ -17,17 +17,32 @@ import to from 'await-to-js';
 const pubsub = new PubSub();
 
 const rooms: QueryToRoomsResolver = async (root, input, { user }) => {
-  console.log(user);
-  return await Room.find({})
-    .populate('host')
-    .exec();
+  const [err, rooms] = await to(
+    Room.find({})
+      .populate('host')
+      .exec(),
+  );
+
+  if (err) {
+    throw new Error('Unexpected server error');
+  }
+
+  return rooms;
 };
 
 const room: QueryToRoomResolver = async (root, input, { user }) => {
-  return await Room.findById(input.query)
-    .populate('host')
-    .populate('queue.voters')
-    .exec();
+  const [err, room] = await to(
+    Room.findById(input.query)
+      .populate('host')
+      .populate('queue.voters')
+      .exec(),
+  );
+
+  if (err) {
+    throw new Error('Unexpected server error');
+  }
+
+  return room;
 };
 
 const createRoom: MutationToCreateRoomResolver = async (
@@ -64,8 +79,6 @@ const addTrackToQueue: MutationToAddTrackToQueueResolver = async (
         return false;
       }
 
-      console.log(track);
-
       const id = track.id;
       const uri = track.uri;
       const name = track.name;
@@ -74,6 +87,7 @@ const addTrackToQueue: MutationToAddTrackToQueueResolver = async (
         name: artist.name,
       }));
       const images = track.album.images;
+      const duration_ms = track.duration_ms;
 
       console.log('Duration: ' + track.duration_ms);
 
@@ -84,6 +98,7 @@ const addTrackToQueue: MutationToAddTrackToQueueResolver = async (
         artists,
         images,
         voters: [],
+        duration_ms,
         timestamp: Date.now(),
       };
 
@@ -93,6 +108,8 @@ const addTrackToQueue: MutationToAddTrackToQueueResolver = async (
         return false;
       }
 
+      console.log('Track to add ', trackToAdd.name);
+
       foundRoom.queue.push(trackToAdd);
 
       [err] = await to(foundRoom.save());
@@ -101,14 +118,14 @@ const addTrackToQueue: MutationToAddTrackToQueueResolver = async (
         return false;
       }
 
-      setTimeout(() => {
-        console.log('You added the track ', name);
-      }, 5000);
+      console.log('Playback ', foundRoom.playback);
+      console.log('Type: ', typeof foundRoom.playback);
+      console.log('??', foundRoom.playback === null);
 
-      pubsub.publish('PLAY_TRACK', {
-        playTrack: trackToAdd,
-        roomId: foundRoom._id,
-      });
+      if (!foundRoom.playback.id) {
+        console.log('play');
+        play(foundRoom._id);
+      }
 
       pubsub.publish('TRACK_ADDED_TO_QUEUE', {
         trackAddedToQueue: trackToAdd,
@@ -121,6 +138,49 @@ const addTrackToQueue: MutationToAddTrackToQueueResolver = async (
       console.error('Error: ', error);
     });
   return true;
+};
+
+const play = async (roomId: string) => {
+  let err, room;
+  [err, room] = await to(
+    Room.findById(roomId)
+      .populate('queue.voters')
+      .exec(),
+  );
+  if (room.queue.length > 0) {
+    const queue = room.queue;
+    queue.sort((a, b) => {
+      return b.voters.length - a.voters.length || a.timestamp - b.timestamp;
+    });
+    const track = queue.shift();
+    room.queue = queue;
+    room.playback = track;
+    [err, room] = await to(room.save());
+
+    // console.log(track);
+
+    pubsub.publish('TRACK_REMOVED_FROM_QUEUE', {
+      trackRemovedFromQueue: track,
+      roomId,
+    });
+
+    if (err) {
+      return;
+    }
+    console.log('PLAY_TRACK: ' + track.name);
+
+    pubsub.publish('PLAY_TRACK', {
+      playTrack: track,
+      roomId,
+    });
+
+    setTimeout(() => {
+      play(roomId);
+    }, 20000);
+  } else {
+    room.playback = null;
+    [err, room] = await to(room.save());
+  }
 };
 
 const voteForTrack: MutationToVoteForTrackResolver = async (

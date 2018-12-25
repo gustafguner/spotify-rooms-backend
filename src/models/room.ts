@@ -21,6 +21,7 @@ const Track = {
     },
   ],
   voters: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }] },
+  duration_ms: { type: Number },
   timestamp: { type: Date, default: Date.now },
 };
 
