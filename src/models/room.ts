@@ -21,8 +21,9 @@ const Track = {
     },
   ],
   voters: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }] },
-  duration_ms: { type: Number },
-  timestamp: { type: Date, default: Date.now },
+  duration: { type: Number },
+  queueTimestamp: { type: Date, default: Date.now },
+  playTimestamp: { type: Date },
 };
 
 export const RoomSchema = new mongoose.Schema({

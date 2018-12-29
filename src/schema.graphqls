@@ -8,6 +8,7 @@ type Query {
   user(query: String): User
   room(query: ID!): Room
   rooms: [Room]
+  playback(roomId: ID!): Track
 }
 
 type Mutation {
@@ -20,7 +21,8 @@ type Subscription {
   trackAddedToQueue(input: TrackAddedToQueueInput!): Track
   trackVotedOnInQueue(input: TrackVotedOnInQueueInput!): Track
   trackRemovedFromQueue(input: TrackRemovedFromQueueInput!): Track
-  playTrack(input: PlayTrackInput!): Track
+  playTrack(roomId: ID!): Track
+  playback(roomId: ID!): Track
 }
 
 type User {
@@ -50,7 +52,10 @@ type Track {
   artists: [Artist]
   images: [SpotifyImage]
   voters: [User]
-  timestamp: String
+  queueTimestamp: String
+  playTimestamp: String
+  position: Int
+  duration: Int
 }
 
 type Artist {

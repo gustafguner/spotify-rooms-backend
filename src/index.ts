@@ -166,6 +166,11 @@ app.get('/callback', (req, res) => {
             await user.save();
           }
 
+          user.accessToken = access_token;
+          user.expires = expires;
+
+          await user.save();
+
           setSpotifyInstance(user._id, expires, access_token, refresh_token);
 
           const uri: string =

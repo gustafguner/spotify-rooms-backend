@@ -4,6 +4,7 @@ import { user } from './user';
 import {
   rooms,
   room,
+  playback,
   createRoom,
   addTrackToQueue,
   voteForTrack,
@@ -11,6 +12,7 @@ import {
   subscribeToTrackVotedOnInQueue,
   subscribeToTrackRemovedFromQueue,
   subscribeToPlayTrack,
+  subscribeToPlayback,
 } from './rooms';
 
 const resolvers: Resolver = {
@@ -18,6 +20,7 @@ const resolvers: Resolver = {
     user,
     rooms,
     room,
+    playback,
   },
   Mutation: {
     createRoom,
@@ -29,6 +32,7 @@ const resolvers: Resolver = {
     trackVotedOnInQueue: subscribeToTrackVotedOnInQueue,
     trackRemovedFromQueue: subscribeToTrackRemovedFromQueue,
     playTrack: subscribeToPlayTrack,
+    playback: subscribeToPlayback,
   },
 };
 

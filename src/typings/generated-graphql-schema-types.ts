@@ -15,6 +15,7 @@ export interface Query {
   user?: User;
   room?: Room;
   rooms?: Array<Room | null>;
+  playback?: Track;
 }
 
 export interface User {
@@ -44,7 +45,10 @@ export interface Track {
   artists?: Array<Artist | null>;
   images?: Array<SpotifyImage | null>;
   voters?: Array<User | null>;
-  timestamp?: string;
+  queueTimestamp?: string;
+  playTimestamp?: string;
+  position?: number;
+  duration?: number;
 }
 
 export interface Artist {
@@ -83,6 +87,7 @@ export interface Subscription {
   trackVotedOnInQueue?: Track;
   trackRemovedFromQueue?: Track;
   playTrack?: Track;
+  playback?: Track;
 }
 
 export interface TrackAddedToQueueInput {
@@ -125,6 +130,7 @@ export interface QueryTypeResolver<TParent = any> {
   user?: QueryToUserResolver<TParent>;
   room?: QueryToRoomResolver<TParent>;
   rooms?: QueryToRoomsResolver<TParent>;
+  playback?: QueryToPlaybackResolver<TParent>;
 }
 
 export interface QueryToUserArgs {
@@ -143,6 +149,13 @@ export interface QueryToRoomResolver<TParent = any, TResult = any> {
 
 export interface QueryToRoomsResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface QueryToPlaybackArgs {
+  roomId: string;
+}
+export interface QueryToPlaybackResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: QueryToPlaybackArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface UserTypeResolver<TParent = any> {
@@ -228,7 +241,10 @@ export interface TrackTypeResolver<TParent = any> {
   artists?: TrackToArtistsResolver<TParent>;
   images?: TrackToImagesResolver<TParent>;
   voters?: TrackToVotersResolver<TParent>;
-  timestamp?: TrackToTimestampResolver<TParent>;
+  queueTimestamp?: TrackToQueueTimestampResolver<TParent>;
+  playTimestamp?: TrackToPlayTimestampResolver<TParent>;
+  position?: TrackToPositionResolver<TParent>;
+  duration?: TrackToDurationResolver<TParent>;
 }
 
 export interface TrackToIdResolver<TParent = any, TResult = any> {
@@ -255,7 +271,19 @@ export interface TrackToVotersResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface TrackToTimestampResolver<TParent = any, TResult = any> {
+export interface TrackToQueueTimestampResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface TrackToPlayTimestampResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface TrackToPositionResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface TrackToDurationResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
@@ -322,6 +350,7 @@ export interface SubscriptionTypeResolver<TParent = any> {
   trackVotedOnInQueue?: SubscriptionToTrackVotedOnInQueueResolver<TParent>;
   trackRemovedFromQueue?: SubscriptionToTrackRemovedFromQueueResolver<TParent>;
   playTrack?: SubscriptionToPlayTrackResolver<TParent>;
+  playback?: SubscriptionToPlaybackResolver<TParent>;
 }
 
 export interface SubscriptionToTrackAddedToQueueArgs {
@@ -349,9 +378,17 @@ export interface SubscriptionToTrackRemovedFromQueueResolver<TParent = any, TRes
 }
 
 export interface SubscriptionToPlayTrackArgs {
-  input: PlayTrackInput;
+  roomId: string;
 }
 export interface SubscriptionToPlayTrackResolver<TParent = any, TResult = any> {
   resolve?: (parent: TParent, args: SubscriptionToPlayTrackArgs, context: any, info: GraphQLResolveInfo) => TResult;
   subscribe: (parent: TParent, args: SubscriptionToPlayTrackArgs, context: any, info: GraphQLResolveInfo) => AsyncIterator<TResult>;
+}
+
+export interface SubscriptionToPlaybackArgs {
+  roomId: string;
+}
+export interface SubscriptionToPlaybackResolver<TParent = any, TResult = any> {
+  resolve?: (parent: TParent, args: SubscriptionToPlaybackArgs, context: any, info: GraphQLResolveInfo) => TResult;
+  subscribe: (parent: TParent, args: SubscriptionToPlaybackArgs, context: any, info: GraphQLResolveInfo) => AsyncIterator<TResult>;
 }

@@ -6,7 +6,9 @@ export interface ITrack {
   images: SpotifyImage[];
   voters: string[];
   duration_ms: number;
-  timestamp: Date;
+  queueTimestamp: Date;
+  playTimestamp: Date;
+  position?: number;
 }
 
 interface Artist {

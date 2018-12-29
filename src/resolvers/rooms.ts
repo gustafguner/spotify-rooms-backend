@@ -8,6 +8,8 @@ import {
   SubscriptionToTrackVotedOnInQueueResolver,
   SubscriptionToTrackRemovedFromQueueResolver,
   SubscriptionToPlayTrackResolver,
+  QueryToPlaybackResolver,
+  SubscriptionToPlaybackResolver,
 } from '../typings/generated-graphql-schema-types';
 import { PubSub, withFilter } from 'graphql-subscriptions';
 import Room from '../models/room';
@@ -31,18 +33,47 @@ const rooms: QueryToRoomsResolver = async (root, input, { user }) => {
 };
 
 const room: QueryToRoomResolver = async (root, input, { user }) => {
-  const [err, room] = await to(
+  let [err, room] = await to(
     Room.findById(input.query)
       .populate('host')
       .populate('queue.voters')
       .exec(),
   );
+  const position = room.playback.id
+    ? Date.now() - room.playback.playTimestamp.getTime()
+    : 0;
 
   if (err) {
     throw new Error('Unexpected server error');
   }
 
+  room.playback.position = position;
+
   return room;
+};
+
+const playback: QueryToPlaybackResolver = async (
+  root,
+  { roomId },
+  { user },
+) => {
+  const [err, room] = await to(
+    Room.findById(roomId)
+      .populate('host')
+      .populate('queue.voters')
+      .exec(),
+  );
+  const position = room.playback.id
+    ? Date.now() - room.playback.playTimestamp.getTime()
+    : 0;
+
+  if (err || !room) {
+    throw new Error('Unexpected server error');
+  }
+  return {
+    ...room.playback,
+    position,
+  };
 };
 
 const createRoom: MutationToCreateRoomResolver = async (
@@ -87,9 +118,9 @@ const addTrackToQueue: MutationToAddTrackToQueueResolver = async (
         name: artist.name,
       }));
       const images = track.album.images;
-      const duration_ms = track.duration_ms;
+      const duration = track.duration_ms;
 
-      console.log('Duration: ' + track.duration_ms);
+      console.log('Duration: ' + duration);
 
       const trackToAdd = {
         id,
@@ -98,8 +129,8 @@ const addTrackToQueue: MutationToAddTrackToQueueResolver = async (
         artists,
         images,
         voters: [],
-        duration_ms,
-        timestamp: Date.now(),
+        duration,
+        queueTimestamp: Date.now(),
       };
 
       [err, foundRoom] = await to(Room.findById(input.roomId).exec());
@@ -118,12 +149,8 @@ const addTrackToQueue: MutationToAddTrackToQueueResolver = async (
         return false;
       }
 
-      console.log('Playback ', foundRoom.playback);
-      console.log('Type: ', typeof foundRoom.playback);
-      console.log('??', foundRoom.playback === null);
-
       if (!foundRoom.playback.id) {
-        console.log('play');
+        console.log('play() !!!');
         play(foundRoom._id);
       }
 
@@ -150,14 +177,17 @@ const play = async (roomId: string) => {
   if (room.queue.length > 0) {
     const queue = room.queue;
     queue.sort((a, b) => {
-      return b.voters.length - a.voters.length || a.timestamp - b.timestamp;
+      return (
+        b.voters.length - a.voters.length || a.queueTimestamp - b.queueTimestamp
+      );
     });
-    const track = queue.shift();
+    let track = queue.shift();
+    track.playTimestamp = Date.now();
+
     room.queue = queue;
     room.playback = track;
-    [err, room] = await to(room.save());
 
-    // console.log(track);
+    [err, room] = await to(room.save());
 
     pubsub.publish('TRACK_REMOVED_FROM_QUEUE', {
       trackRemovedFromQueue: track,
@@ -169,17 +199,25 @@ const play = async (roomId: string) => {
     }
     console.log('PLAY_TRACK: ' + track.name);
 
-    pubsub.publish('PLAY_TRACK', {
-      playTrack: track,
+    track.position = 0;
+
+    console.log('PLAYBACK publish');
+    pubsub.publish('PLAYBACK', {
+      playback: track,
       roomId,
     });
 
     setTimeout(() => {
       play(roomId);
-    }, 20000);
+    }, track.duration);
   } else {
     room.playback = null;
     [err, room] = await to(room.save());
+    console.log('CLEARED PLAYBACK');
+    pubsub.publish('PLAYBACK', {
+      playback: null,
+      roomId,
+    });
   }
 };
 
@@ -201,6 +239,7 @@ const voteForTrack: MutationToVoteForTrackResolver = async (
 
   const track = foundRoom.queue[queueIndex];
   const i = track.voters.indexOf(user._id);
+
   if (i === -1) {
     track.voters.push(user._id);
   } else {
@@ -250,8 +289,17 @@ const subscribeToTrackRemovedFromQueue: SubscriptionToTrackRemovedFromQueueResol
 const subscribeToPlayTrack: SubscriptionToPlayTrackResolver = {
   subscribe: withFilter(
     () => pubsub.asyncIterator('PLAY_TRACK'),
-    (payload, { input }) => {
-      return payload.roomId == input.roomId;
+    (payload, { roomId }) => {
+      return payload.roomId == roomId;
+    },
+  ),
+};
+
+const subscribeToPlayback: SubscriptionToPlaybackResolver = {
+  subscribe: withFilter(
+    () => pubsub.asyncIterator('PLAYBACK'),
+    (payload, { roomId }) => {
+      return payload.roomId == roomId;
     },
   ),
 };
@@ -259,6 +307,7 @@ const subscribeToPlayTrack: SubscriptionToPlayTrackResolver = {
 export {
   rooms,
   room,
+  playback,
   createRoom,
   addTrackToQueue,
   voteForTrack,
@@ -266,4 +315,5 @@ export {
   subscribeToTrackVotedOnInQueue,
   subscribeToTrackRemovedFromQueue,
   subscribeToPlayTrack,
+  subscribeToPlayback,
 };
