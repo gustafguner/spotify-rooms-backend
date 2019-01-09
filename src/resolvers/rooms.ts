@@ -209,7 +209,7 @@ const play = async (roomId: string) => {
 
     setTimeout(() => {
       play(roomId);
-    }, track.duration);
+    }, track.duration + 2000);
   } else {
     room.playback = null;
     [err, room] = await to(room.save());
