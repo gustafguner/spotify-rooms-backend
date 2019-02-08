@@ -9,6 +9,7 @@ type Query {
   room(query: ID!): Room
   rooms: [Room]
   playback(roomId: ID!): Track
+  queue(roomId: ID!): [Track]
 }
 
 type Mutation {
@@ -18,10 +19,9 @@ type Mutation {
 }
 
 type Subscription {
-  trackAddedToQueue(input: TrackAddedToQueueInput!): Track
-  trackVotedOnInQueue(input: TrackVotedOnInQueueInput!): Track
-  trackRemovedFromQueue(input: TrackRemovedFromQueueInput!): Track
-  playTrack(roomId: ID!): Track
+  trackAddedToQueue(roomId: ID!): Track
+  trackVotedOnInQueue(roomId: ID!): Track
+  trackRemovedFromQueue(roomId: ID!): Track
   playback(roomId: ID!): Track
 }
 
@@ -81,18 +81,6 @@ input AddTrackToQueueInput {
 input VoteForTrackInput {
   roomId: ID!
   trackId: String!
-}
-
-input TrackAddedToQueueInput {
-  roomId: ID!
-}
-
-input TrackVotedOnInQueueInput {
-  roomId: ID!
-}
-
-input TrackRemovedFromQueueInput {
-  roomId: ID!
 }
 
 input PlayTrackInput {

@@ -7,9 +7,9 @@ import {
   SubscriptionToTrackAddedToQueueResolver,
   SubscriptionToTrackVotedOnInQueueResolver,
   SubscriptionToTrackRemovedFromQueueResolver,
-  SubscriptionToPlayTrackResolver,
   QueryToPlaybackResolver,
   SubscriptionToPlaybackResolver,
+  QueryToQueueResolver,
 } from '../typings/generated-graphql-schema-types';
 import { PubSub, withFilter } from 'graphql-subscriptions';
 import Room from '../models/room';
@@ -74,6 +74,19 @@ const playback: QueryToPlaybackResolver = async (
     ...room.playback,
     position,
   };
+};
+
+const queue: QueryToQueueResolver = async (root, { roomId }, { user }) => {
+  const [err, room] = await to(
+    Room.findById(roomId)
+      .populate('queue.voters')
+      .exec(),
+  );
+
+  if (err || !room) {
+    throw new Error('Unexpected server error');
+  }
+  return room.queue;
 };
 
 const createRoom: MutationToCreateRoomResolver = async (
@@ -209,7 +222,7 @@ const play = async (roomId: string) => {
 
     setTimeout(() => {
       play(roomId);
-    }, track.duration + 2000);
+    }, track.duration + 1500);
   } else {
     room.playback = null;
     [err, room] = await to(room.save());
@@ -262,8 +275,8 @@ const voteForTrack: MutationToVoteForTrackResolver = async (
 const subscribeToTrackAddedToQueue: SubscriptionToTrackAddedToQueueResolver = {
   subscribe: withFilter(
     () => pubsub.asyncIterator('TRACK_ADDED_TO_QUEUE'),
-    (payload, { input }) => {
-      return payload.roomId == input.roomId;
+    (payload, { roomId }) => {
+      return payload.roomId == roomId;
     },
   ),
 };
@@ -271,8 +284,8 @@ const subscribeToTrackAddedToQueue: SubscriptionToTrackAddedToQueueResolver = {
 const subscribeToTrackVotedOnInQueue: SubscriptionToTrackVotedOnInQueueResolver = {
   subscribe: withFilter(
     () => pubsub.asyncIterator('TRACK_VOTED_ON_IN_QUEUE'),
-    (payload, { input }) => {
-      return payload.roomId == input.roomId;
+    (payload, { roomId }) => {
+      return payload.roomId == roomId;
     },
   ),
 };
@@ -280,15 +293,6 @@ const subscribeToTrackVotedOnInQueue: SubscriptionToTrackVotedOnInQueueResolver 
 const subscribeToTrackRemovedFromQueue: SubscriptionToTrackRemovedFromQueueResolver = {
   subscribe: withFilter(
     () => pubsub.asyncIterator('TRACK_REMOVED_FROM_QUEUE'),
-    (payload, { input }) => {
-      return payload.roomId == input.roomId;
-    },
-  ),
-};
-
-const subscribeToPlayTrack: SubscriptionToPlayTrackResolver = {
-  subscribe: withFilter(
-    () => pubsub.asyncIterator('PLAY_TRACK'),
     (payload, { roomId }) => {
       return payload.roomId == roomId;
     },
@@ -308,12 +312,12 @@ export {
   rooms,
   room,
   playback,
+  queue,
   createRoom,
   addTrackToQueue,
   voteForTrack,
   subscribeToTrackAddedToQueue,
   subscribeToTrackVotedOnInQueue,
   subscribeToTrackRemovedFromQueue,
-  subscribeToPlayTrack,
   subscribeToPlayback,
 };

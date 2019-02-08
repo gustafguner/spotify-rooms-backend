@@ -16,6 +16,7 @@ export interface Query {
   room?: Room;
   rooms?: Array<Room | null>;
   playback?: Track;
+  queue?: Array<Track | null>;
 }
 
 export interface User {
@@ -86,20 +87,7 @@ export interface Subscription {
   trackAddedToQueue?: Track;
   trackVotedOnInQueue?: Track;
   trackRemovedFromQueue?: Track;
-  playTrack?: Track;
   playback?: Track;
-}
-
-export interface TrackAddedToQueueInput {
-  roomId: string;
-}
-
-export interface TrackVotedOnInQueueInput {
-  roomId: string;
-}
-
-export interface TrackRemovedFromQueueInput {
-  roomId: string;
 }
 
 export interface PlayTrackInput {
@@ -131,6 +119,7 @@ export interface QueryTypeResolver<TParent = any> {
   room?: QueryToRoomResolver<TParent>;
   rooms?: QueryToRoomsResolver<TParent>;
   playback?: QueryToPlaybackResolver<TParent>;
+  queue?: QueryToQueueResolver<TParent>;
 }
 
 export interface QueryToUserArgs {
@@ -156,6 +145,13 @@ export interface QueryToPlaybackArgs {
 }
 export interface QueryToPlaybackResolver<TParent = any, TResult = any> {
   (parent: TParent, args: QueryToPlaybackArgs, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface QueryToQueueArgs {
+  roomId: string;
+}
+export interface QueryToQueueResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: QueryToQueueArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface UserTypeResolver<TParent = any> {
@@ -349,12 +345,11 @@ export interface SubscriptionTypeResolver<TParent = any> {
   trackAddedToQueue?: SubscriptionToTrackAddedToQueueResolver<TParent>;
   trackVotedOnInQueue?: SubscriptionToTrackVotedOnInQueueResolver<TParent>;
   trackRemovedFromQueue?: SubscriptionToTrackRemovedFromQueueResolver<TParent>;
-  playTrack?: SubscriptionToPlayTrackResolver<TParent>;
   playback?: SubscriptionToPlaybackResolver<TParent>;
 }
 
 export interface SubscriptionToTrackAddedToQueueArgs {
-  input: TrackAddedToQueueInput;
+  roomId: string;
 }
 export interface SubscriptionToTrackAddedToQueueResolver<TParent = any, TResult = any> {
   resolve?: (parent: TParent, args: SubscriptionToTrackAddedToQueueArgs, context: any, info: GraphQLResolveInfo) => TResult;
@@ -362,7 +357,7 @@ export interface SubscriptionToTrackAddedToQueueResolver<TParent = any, TResult 
 }
 
 export interface SubscriptionToTrackVotedOnInQueueArgs {
-  input: TrackVotedOnInQueueInput;
+  roomId: string;
 }
 export interface SubscriptionToTrackVotedOnInQueueResolver<TParent = any, TResult = any> {
   resolve?: (parent: TParent, args: SubscriptionToTrackVotedOnInQueueArgs, context: any, info: GraphQLResolveInfo) => TResult;
@@ -370,19 +365,11 @@ export interface SubscriptionToTrackVotedOnInQueueResolver<TParent = any, TResul
 }
 
 export interface SubscriptionToTrackRemovedFromQueueArgs {
-  input: TrackRemovedFromQueueInput;
+  roomId: string;
 }
 export interface SubscriptionToTrackRemovedFromQueueResolver<TParent = any, TResult = any> {
   resolve?: (parent: TParent, args: SubscriptionToTrackRemovedFromQueueArgs, context: any, info: GraphQLResolveInfo) => TResult;
   subscribe: (parent: TParent, args: SubscriptionToTrackRemovedFromQueueArgs, context: any, info: GraphQLResolveInfo) => AsyncIterator<TResult>;
-}
-
-export interface SubscriptionToPlayTrackArgs {
-  roomId: string;
-}
-export interface SubscriptionToPlayTrackResolver<TParent = any, TResult = any> {
-  resolve?: (parent: TParent, args: SubscriptionToPlayTrackArgs, context: any, info: GraphQLResolveInfo) => TResult;
-  subscribe: (parent: TParent, args: SubscriptionToPlayTrackArgs, context: any, info: GraphQLResolveInfo) => AsyncIterator<TResult>;
 }
 
 export interface SubscriptionToPlaybackArgs {
