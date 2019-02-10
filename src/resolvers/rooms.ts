@@ -65,9 +65,9 @@ const joinRoom: MutationToJoinRoomResolver = async (
     return false;
   }
 
-  console.log('Joined room ' + room.name);
+  const index = room.users.indexOf(user._id);
 
-  if (room.users.includes(user._id)) {
+  if (index !== -1) {
     return false;
   }
 
