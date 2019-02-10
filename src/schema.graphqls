@@ -16,6 +16,8 @@ type Mutation {
   createRoom(input: CreateRoomInput!): Boolean!
   addTrackToQueue(input: AddTrackToQueueInput!): Track!
   voteForTrack(input: VoteForTrackInput!): Boolean!
+  joinRoom(roomId: ID!): Boolean!
+  leaveRoom(roomId: ID!): Boolean!
 }
 
 type Subscription {

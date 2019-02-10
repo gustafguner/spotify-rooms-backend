@@ -4,6 +4,8 @@ import { user } from './user';
 import {
   rooms,
   room,
+  joinRoom,
+  leaveRoom,
   playback,
   queue,
   createRoom,
@@ -27,6 +29,8 @@ const resolvers: Resolver = {
     createRoom,
     addTrackToQueue,
     voteForTrack,
+    joinRoom,
+    leaveRoom,
   },
   Subscription: {
     trackAddedToQueue: subscribeToTrackAddedToQueue,

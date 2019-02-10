@@ -10,6 +10,8 @@ import {
   QueryToPlaybackResolver,
   SubscriptionToPlaybackResolver,
   QueryToQueueResolver,
+  MutationToJoinRoomResolver,
+  MutationToLeaveRoomResolver,
 } from '../typings/generated-graphql-schema-types';
 import { PubSub, withFilter } from 'graphql-subscriptions';
 import Room from '../models/room';
@@ -50,6 +52,54 @@ const room: QueryToRoomResolver = async (root, input, { user }) => {
   room.playback.position = position;
 
   return room;
+};
+
+const joinRoom: MutationToJoinRoomResolver = async (
+  root,
+  { roomId },
+  { user },
+) => {
+  const [err, room] = await to(Room.findById(roomId).exec());
+
+  if (err) {
+    return false;
+  }
+
+  console.log('Joined room ' + room.name);
+
+  if (room.users.includes(user._id)) {
+    return false;
+  }
+
+  room.users.push(user._id);
+
+  const [saveErr] = await to(room.save());
+
+  return !saveErr;
+};
+
+const leaveRoom: MutationToLeaveRoomResolver = async (
+  root,
+  { roomId },
+  { user },
+) => {
+  const [err, room] = await to(Room.findById(roomId).exec());
+
+  const index = room.users.indexOf(user._id);
+
+  if (index === -1) {
+    return false;
+  }
+
+  console.log('Left room ' + room.name);
+
+  console.log('Users in room ', room.users);
+
+  room.users.splice(index, 1);
+
+  const [saveErr] = await to(room.save());
+
+  return !saveErr;
 };
 
 const playback: QueryToPlaybackResolver = async (
@@ -311,6 +361,8 @@ const subscribeToPlayback: SubscriptionToPlaybackResolver = {
 export {
   rooms,
   room,
+  joinRoom,
+  leaveRoom,
   playback,
   queue,
   createRoom,

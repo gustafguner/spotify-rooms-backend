@@ -67,6 +67,8 @@ export interface Mutation {
   createRoom: boolean;
   addTrackToQueue: Track;
   voteForTrack: boolean;
+  joinRoom: boolean;
+  leaveRoom: boolean;
 }
 
 export interface CreateRoomInput {
@@ -318,6 +320,8 @@ export interface MutationTypeResolver<TParent = any> {
   createRoom?: MutationToCreateRoomResolver<TParent>;
   addTrackToQueue?: MutationToAddTrackToQueueResolver<TParent>;
   voteForTrack?: MutationToVoteForTrackResolver<TParent>;
+  joinRoom?: MutationToJoinRoomResolver<TParent>;
+  leaveRoom?: MutationToLeaveRoomResolver<TParent>;
 }
 
 export interface MutationToCreateRoomArgs {
@@ -339,6 +343,20 @@ export interface MutationToVoteForTrackArgs {
 }
 export interface MutationToVoteForTrackResolver<TParent = any, TResult = any> {
   (parent: TParent, args: MutationToVoteForTrackArgs, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface MutationToJoinRoomArgs {
+  roomId: string;
+}
+export interface MutationToJoinRoomResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: MutationToJoinRoomArgs, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface MutationToLeaveRoomArgs {
+  roomId: string;
+}
+export interface MutationToLeaveRoomResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: MutationToLeaveRoomArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface SubscriptionTypeResolver<TParent = any> {
