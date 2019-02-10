@@ -12,6 +12,8 @@ import {
   QueryToQueueResolver,
   MutationToJoinRoomResolver,
   MutationToLeaveRoomResolver,
+  QueryToUsersInRoomResolver,
+  SubscriptionToUsersInRoomResolver,
 } from '../typings/generated-graphql-schema-types';
 import { PubSub, withFilter } from 'graphql-subscriptions';
 import Room from '../models/room';
@@ -34,9 +36,9 @@ const rooms: QueryToRoomsResolver = async (root, input, { user }) => {
   return rooms;
 };
 
-const room: QueryToRoomResolver = async (root, input, { user }) => {
+const room: QueryToRoomResolver = async (root, { roomId }, { user }) => {
   let [err, room] = await to(
-    Room.findById(input.query)
+    Room.findById(roomId)
       .populate('host')
       .populate('queue.voters')
       .exec(),
@@ -75,7 +77,17 @@ const joinRoom: MutationToJoinRoomResolver = async (
 
   const [saveErr] = await to(room.save());
 
-  return !saveErr;
+  if (!saveErr) {
+    console.log('publish');
+    await Room.populate(room, { path: 'users' });
+    pubsub.publish('USERS_IN_ROOM', {
+      usersInRoom: room.users,
+      roomId,
+    });
+    return true;
+  }
+
+  return false;
 };
 
 const leaveRoom: MutationToLeaveRoomResolver = async (
@@ -85,21 +97,47 @@ const leaveRoom: MutationToLeaveRoomResolver = async (
 ) => {
   const [err, room] = await to(Room.findById(roomId).exec());
 
+  if (err) {
+    return false;
+  }
+
   const index = room.users.indexOf(user._id);
 
   if (index === -1) {
     return false;
   }
 
-  console.log('Left room ' + room.name);
-
-  console.log('Users in room ', room.users);
-
   room.users.splice(index, 1);
-
   const [saveErr] = await to(room.save());
 
-  return !saveErr;
+  if (!saveErr) {
+    await Room.populate(room, { path: 'users' });
+    pubsub.publish('USERS_IN_ROOM', {
+      usersInRoom: room.users,
+      roomId,
+    });
+    return true;
+  }
+
+  return false;
+};
+
+const usersInRoom: QueryToUsersInRoomResolver = async (
+  root,
+  { roomId },
+  { user },
+) => {
+  const [err, room] = await to(
+    Room.findById(roomId)
+      .populate('users')
+      .exec(),
+  );
+
+  if (err) {
+    return false;
+  }
+
+  return room.users;
 };
 
 const playback: QueryToPlaybackResolver = async (
@@ -358,11 +396,21 @@ const subscribeToPlayback: SubscriptionToPlaybackResolver = {
   ),
 };
 
+const subscribeToUsersInRoom: SubscriptionToUsersInRoomResolver = {
+  subscribe: withFilter(
+    () => pubsub.asyncIterator('USERS_IN_ROOM'),
+    (payload, { roomId }) => {
+      return payload.roomId == roomId;
+    },
+  ),
+};
+
 export {
   rooms,
   room,
   joinRoom,
   leaveRoom,
+  usersInRoom,
   playback,
   queue,
   createRoom,
@@ -372,4 +420,5 @@ export {
   subscribeToTrackVotedOnInQueue,
   subscribeToTrackRemovedFromQueue,
   subscribeToPlayback,
+  subscribeToUsersInRoom,
 };

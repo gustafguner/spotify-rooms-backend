@@ -6,6 +6,7 @@ import {
   room,
   joinRoom,
   leaveRoom,
+  usersInRoom,
   playback,
   queue,
   createRoom,
@@ -15,6 +16,7 @@ import {
   subscribeToTrackVotedOnInQueue,
   subscribeToTrackRemovedFromQueue,
   subscribeToPlayback,
+  subscribeToUsersInRoom,
 } from './rooms';
 
 const resolvers: Resolver = {
@@ -24,6 +26,7 @@ const resolvers: Resolver = {
     room,
     playback,
     queue,
+    usersInRoom,
   },
   Mutation: {
     createRoom,
@@ -37,6 +40,7 @@ const resolvers: Resolver = {
     trackVotedOnInQueue: subscribeToTrackVotedOnInQueue,
     trackRemovedFromQueue: subscribeToTrackRemovedFromQueue,
     playback: subscribeToPlayback,
+    usersInRoom: subscribeToUsersInRoom,
   },
 };
 
