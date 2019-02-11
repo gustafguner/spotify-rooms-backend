@@ -4,7 +4,7 @@ import { user } from './user';
 import {
   rooms,
   room,
-  joinRoom,
+  enterRoom,
   leaveRoom,
   usersInRoom,
   playback,
@@ -16,7 +16,8 @@ import {
   subscribeToTrackVotedOnInQueue,
   subscribeToTrackRemovedFromQueue,
   subscribeToPlayback,
-  subscribeToUsersInRoom,
+  subscribeToUserEnteredRoom,
+  subscribeToUserLeftRoom,
 } from './rooms';
 
 const resolvers: Resolver = {
@@ -32,7 +33,7 @@ const resolvers: Resolver = {
     createRoom,
     addTrackToQueue,
     voteForTrack,
-    joinRoom,
+    enterRoom,
     leaveRoom,
   },
   Subscription: {
@@ -40,7 +41,8 @@ const resolvers: Resolver = {
     trackVotedOnInQueue: subscribeToTrackVotedOnInQueue,
     trackRemovedFromQueue: subscribeToTrackRemovedFromQueue,
     playback: subscribeToPlayback,
-    usersInRoom: subscribeToUsersInRoom,
+    userEnteredRoom: subscribeToUserEnteredRoom,
+    userLeftRoom: subscribeToUserLeftRoom,
   },
 };
 

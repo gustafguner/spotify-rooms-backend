@@ -68,7 +68,7 @@ export interface Mutation {
   createRoom: boolean;
   addTrackToQueue: Track;
   voteForTrack: boolean;
-  joinRoom: boolean;
+  enterRoom: boolean;
   leaveRoom: boolean;
 }
 
@@ -91,7 +91,8 @@ export interface Subscription {
   trackVotedOnInQueue?: Track;
   trackRemovedFromQueue?: Track;
   playback?: Track;
-  usersInRoom?: Array<User | null>;
+  userEnteredRoom?: User;
+  userLeftRoom?: User;
 }
 
 export interface PlayTrackInput {
@@ -330,7 +331,7 @@ export interface MutationTypeResolver<TParent = any> {
   createRoom?: MutationToCreateRoomResolver<TParent>;
   addTrackToQueue?: MutationToAddTrackToQueueResolver<TParent>;
   voteForTrack?: MutationToVoteForTrackResolver<TParent>;
-  joinRoom?: MutationToJoinRoomResolver<TParent>;
+  enterRoom?: MutationToEnterRoomResolver<TParent>;
   leaveRoom?: MutationToLeaveRoomResolver<TParent>;
 }
 
@@ -355,11 +356,11 @@ export interface MutationToVoteForTrackResolver<TParent = any, TResult = any> {
   (parent: TParent, args: MutationToVoteForTrackArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface MutationToJoinRoomArgs {
+export interface MutationToEnterRoomArgs {
   roomId: string;
 }
-export interface MutationToJoinRoomResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: MutationToJoinRoomArgs, context: any, info: GraphQLResolveInfo): TResult;
+export interface MutationToEnterRoomResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: MutationToEnterRoomArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface MutationToLeaveRoomArgs {
@@ -374,7 +375,8 @@ export interface SubscriptionTypeResolver<TParent = any> {
   trackVotedOnInQueue?: SubscriptionToTrackVotedOnInQueueResolver<TParent>;
   trackRemovedFromQueue?: SubscriptionToTrackRemovedFromQueueResolver<TParent>;
   playback?: SubscriptionToPlaybackResolver<TParent>;
-  usersInRoom?: SubscriptionToUsersInRoomResolver<TParent>;
+  userEnteredRoom?: SubscriptionToUserEnteredRoomResolver<TParent>;
+  userLeftRoom?: SubscriptionToUserLeftRoomResolver<TParent>;
 }
 
 export interface SubscriptionToTrackAddedToQueueArgs {
@@ -409,10 +411,18 @@ export interface SubscriptionToPlaybackResolver<TParent = any, TResult = any> {
   subscribe: (parent: TParent, args: SubscriptionToPlaybackArgs, context: any, info: GraphQLResolveInfo) => AsyncIterator<TResult>;
 }
 
-export interface SubscriptionToUsersInRoomArgs {
+export interface SubscriptionToUserEnteredRoomArgs {
   roomId: string;
 }
-export interface SubscriptionToUsersInRoomResolver<TParent = any, TResult = any> {
-  resolve?: (parent: TParent, args: SubscriptionToUsersInRoomArgs, context: any, info: GraphQLResolveInfo) => TResult;
-  subscribe: (parent: TParent, args: SubscriptionToUsersInRoomArgs, context: any, info: GraphQLResolveInfo) => AsyncIterator<TResult>;
+export interface SubscriptionToUserEnteredRoomResolver<TParent = any, TResult = any> {
+  resolve?: (parent: TParent, args: SubscriptionToUserEnteredRoomArgs, context: any, info: GraphQLResolveInfo) => TResult;
+  subscribe: (parent: TParent, args: SubscriptionToUserEnteredRoomArgs, context: any, info: GraphQLResolveInfo) => AsyncIterator<TResult>;
+}
+
+export interface SubscriptionToUserLeftRoomArgs {
+  roomId: string;
+}
+export interface SubscriptionToUserLeftRoomResolver<TParent = any, TResult = any> {
+  resolve?: (parent: TParent, args: SubscriptionToUserLeftRoomArgs, context: any, info: GraphQLResolveInfo) => TResult;
+  subscribe: (parent: TParent, args: SubscriptionToUserLeftRoomArgs, context: any, info: GraphQLResolveInfo) => AsyncIterator<TResult>;
 }

@@ -10,10 +10,11 @@ import {
   QueryToPlaybackResolver,
   SubscriptionToPlaybackResolver,
   QueryToQueueResolver,
-  MutationToJoinRoomResolver,
+  MutationToEnterRoomResolver,
   MutationToLeaveRoomResolver,
   QueryToUsersInRoomResolver,
-  SubscriptionToUsersInRoomResolver,
+  SubscriptionToUserEnteredRoomResolver,
+  SubscriptionToUserLeftRoomResolver,
 } from '../typings/generated-graphql-schema-types';
 import { PubSub, withFilter } from 'graphql-subscriptions';
 import Room from '../models/room';
@@ -56,7 +57,7 @@ const room: QueryToRoomResolver = async (root, { roomId }, { user }) => {
   return room;
 };
 
-const joinRoom: MutationToJoinRoomResolver = async (
+const enterRoom: MutationToEnterRoomResolver = async (
   root,
   { roomId },
   { user },
@@ -80,8 +81,8 @@ const joinRoom: MutationToJoinRoomResolver = async (
   if (!saveErr) {
     console.log('publish');
     await Room.populate(room, { path: 'users' });
-    pubsub.publish('USERS_IN_ROOM', {
-      usersInRoom: room.users,
+    pubsub.publish('USER_ENTERED_ROOM', {
+      userEnteredRoom: room.users[room.users.length - 1],
       roomId,
     });
     return true;
@@ -107,13 +108,15 @@ const leaveRoom: MutationToLeaveRoomResolver = async (
     return false;
   }
 
+  await Room.populate(room, { path: 'users' });
+  const userLeaving = room.users[index];
+
   room.users.splice(index, 1);
   const [saveErr] = await to(room.save());
 
   if (!saveErr) {
-    await Room.populate(room, { path: 'users' });
-    pubsub.publish('USERS_IN_ROOM', {
-      usersInRoom: room.users,
+    pubsub.publish('USER_LEFT_ROOM', {
+      userLeftRoom: userLeaving,
       roomId,
     });
     return true;
@@ -396,9 +399,18 @@ const subscribeToPlayback: SubscriptionToPlaybackResolver = {
   ),
 };
 
-const subscribeToUsersInRoom: SubscriptionToUsersInRoomResolver = {
+const subscribeToUserEnteredRoom: SubscriptionToUserEnteredRoomResolver = {
   subscribe: withFilter(
-    () => pubsub.asyncIterator('USERS_IN_ROOM'),
+    () => pubsub.asyncIterator('USER_ENTERED_ROOM'),
+    (payload, { roomId }) => {
+      return payload.roomId == roomId;
+    },
+  ),
+};
+
+const subscribeToUserLeftRoom: SubscriptionToUserLeftRoomResolver = {
+  subscribe: withFilter(
+    () => pubsub.asyncIterator('USER_LEFT_ROOM'),
     (payload, { roomId }) => {
       return payload.roomId == roomId;
     },
@@ -408,7 +420,7 @@ const subscribeToUsersInRoom: SubscriptionToUsersInRoomResolver = {
 export {
   rooms,
   room,
-  joinRoom,
+  enterRoom,
   leaveRoom,
   usersInRoom,
   playback,
@@ -420,5 +432,6 @@ export {
   subscribeToTrackVotedOnInQueue,
   subscribeToTrackRemovedFromQueue,
   subscribeToPlayback,
-  subscribeToUsersInRoom,
+  subscribeToUserEnteredRoom,
+  subscribeToUserLeftRoom,
 };

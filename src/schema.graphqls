@@ -17,7 +17,7 @@ type Mutation {
   createRoom(input: CreateRoomInput!): Boolean!
   addTrackToQueue(input: AddTrackToQueueInput!): Track!
   voteForTrack(input: VoteForTrackInput!): Boolean!
-  joinRoom(roomId: ID!): Boolean!
+  enterRoom(roomId: ID!): Boolean!
   leaveRoom(roomId: ID!): Boolean!
 }
 
@@ -26,7 +26,8 @@ type Subscription {
   trackVotedOnInQueue(roomId: ID!): Track
   trackRemovedFromQueue(roomId: ID!): Track
   playback(roomId: ID!): Track
-  usersInRoom(roomId: ID!): [User]
+  userEnteredRoom(roomId: ID!): User
+  userLeftRoom(roomId: ID!): User
 }
 
 type User {
