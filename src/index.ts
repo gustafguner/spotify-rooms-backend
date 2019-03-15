@@ -39,15 +39,12 @@ const scopes = [
 const state = 'fix-this-later';
 
 mongoose
-  .connect(
-    process.env.MONGODB_URL,
-    {
-      auth: {
-        user: process.env.MONGODB_USERNAME,
-        password: process.env.MONGODB_PASSWORD,
-      },
+  .connect(process.env.MONGODB_URL, {
+    auth: {
+      user: process.env.MONGODB_USERNAME,
+      password: process.env.MONGODB_PASSWORD,
     },
-  )
+  })
   .then(() => console.log('Successfully connected to MongoDB'))
   .catch((err) =>
     console.error(
@@ -153,18 +150,19 @@ app.get('/callback', (req, res) => {
         async ({ body }) => {
           let user = await User.findOne({ spotifyId: body.id });
 
+          console.log(body);
+
           if (!user) {
             user = new User({
               spotifyId: body.id,
-              accessToken: access_token,
               refreshToken: refresh_token,
-              expires,
-              displayName: body.display_name,
-              email: body.email,
-              country: body.country,
             });
-            await user.save();
           }
+
+          user.displayName = body.display_name;
+          user.country = body.country;
+          user.image = body.images.length > 0 ? body.images[0].url : null;
+          user.email = body.email;
 
           user.accessToken = access_token;
           user.expires = expires;

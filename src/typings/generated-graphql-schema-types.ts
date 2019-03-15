@@ -29,6 +29,7 @@ export interface User {
   displayName?: string;
   email?: string;
   country?: string;
+  image?: string;
 }
 
 export interface Room {
@@ -176,6 +177,7 @@ export interface UserTypeResolver<TParent = any> {
   displayName?: UserToDisplayNameResolver<TParent>;
   email?: UserToEmailResolver<TParent>;
   country?: UserToCountryResolver<TParent>;
+  image?: UserToImageResolver<TParent>;
 }
 
 export interface UserToIdResolver<TParent = any, TResult = any> {
@@ -207,6 +209,10 @@ export interface UserToEmailResolver<TParent = any, TResult = any> {
 }
 
 export interface UserToCountryResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface UserToImageResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 

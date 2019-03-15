@@ -8,4 +8,5 @@ export interface IUser extends mongoose.Document {
   displayName: string;
   email?: string;
   country?: string;
+  image?: string;
 }

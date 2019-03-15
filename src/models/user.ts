@@ -10,6 +10,7 @@ export const UserSchema = new mongoose.Schema({
   displayName: { type: String, required: true },
   email: { type: String, required: false },
   country: { type: String, required: false },
+  image: { type: String },
 });
 
 const User = mongoose.model<IUser>('User', UserSchema);

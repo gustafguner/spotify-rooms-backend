@@ -39,6 +39,7 @@ type User {
   displayName: String
   email: String
   country: String
+  image: String
 }
 
 type Room {
