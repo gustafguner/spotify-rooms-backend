@@ -66,7 +66,7 @@ export interface SpotifyImage {
 }
 
 export interface Mutation {
-  createRoom: boolean;
+  createRoom?: Room;
   addTrackToQueue: Track;
   voteForTrack: boolean;
   enterRoom: boolean;
@@ -75,6 +75,8 @@ export interface Mutation {
 
 export interface CreateRoomInput {
   name: string;
+  mode: string;
+  private: boolean;
 }
 
 export interface AddTrackToQueueInput {

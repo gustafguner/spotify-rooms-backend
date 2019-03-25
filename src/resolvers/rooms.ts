@@ -192,10 +192,9 @@ const createRoom: MutationToCreateRoomResolver = async (
     host: user._id,
   });
 
-  room.save((err, room) => {
-    return true;
-  });
-  return true;
+  const [err, createdRoom] = await to(room.save());
+
+  return err === null ? createdRoom : null;
 };
 
 const addTrackToQueue: MutationToAddTrackToQueueResolver = async (

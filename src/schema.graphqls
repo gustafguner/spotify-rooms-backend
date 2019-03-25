@@ -14,7 +14,7 @@ type Query {
 }
 
 type Mutation {
-  createRoom(input: CreateRoomInput!): Boolean!
+  createRoom(input: CreateRoomInput!): Room
   addTrackToQueue(input: AddTrackToQueueInput!): Track!
   voteForTrack(input: VoteForTrackInput!): Boolean!
   enterRoom(roomId: ID!): Boolean!
@@ -77,6 +77,8 @@ type SpotifyImage {
 
 input CreateRoomInput {
   name: String!
+  mode: String!
+  private: Boolean!
 }
 
 input AddTrackToQueueInput {

@@ -28,6 +28,8 @@ const Track = {
 
 export const RoomSchema = new mongoose.Schema({
   name: { type: String, required: true },
+  mode: { type: String, required: true },
+  private: { type: Boolean, required: true },
   host: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   users: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }] },
   playback: Track,
