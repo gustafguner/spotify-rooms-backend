@@ -34,6 +34,7 @@ export const RoomSchema = new mongoose.Schema({
   users: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }] },
   playback: Track,
   queue: [Track],
+  suggestions: [Track],
 });
 
 const Room = mongoose.model<IRoom>('Room', RoomSchema);

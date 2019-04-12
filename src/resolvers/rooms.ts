@@ -82,7 +82,6 @@ const enterRoom: MutationToEnterRoomResolver = async (
   const [saveErr] = await to(room.save());
 
   if (!saveErr) {
-    console.log('publish');
     await Room.populate(room, { path: 'users' });
     pubsub.publish('USER_ENTERED_ROOM', {
       userEnteredRoom: room.users[room.users.length - 1],
@@ -209,7 +208,7 @@ const updateRoom: MutationToUpdateRoomResolver = async (
 
   let [err, room] = await to(Room.findById(input.id).exec());
 
-  if (!room || err) {
+  if (!room || err || room.host != user.id) {
     return false;
   }
 

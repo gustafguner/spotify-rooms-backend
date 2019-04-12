@@ -41,6 +41,7 @@ export interface Room {
   users?: Array<User | null>;
   playback?: Track;
   queue?: Array<Track | null>;
+  suggestions?: Array<Track | null>;
 }
 
 export interface Track {
@@ -245,6 +246,7 @@ export interface RoomTypeResolver<TParent = any> {
   users?: RoomToUsersResolver<TParent>;
   playback?: RoomToPlaybackResolver<TParent>;
   queue?: RoomToQueueResolver<TParent>;
+  suggestions?: RoomToSuggestionsResolver<TParent>;
 }
 
 export interface RoomToIdResolver<TParent = any, TResult = any> {
@@ -276,6 +278,10 @@ export interface RoomToPlaybackResolver<TParent = any, TResult = any> {
 }
 
 export interface RoomToQueueResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface RoomToSuggestionsResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 

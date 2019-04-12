@@ -53,6 +53,7 @@ type Room {
   users: [User]
   playback: Track
   queue: [Track]
+  suggestions: [Track]
 }
 
 type Track {

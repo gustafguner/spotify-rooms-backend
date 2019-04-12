@@ -8,4 +8,5 @@ export interface IRoom extends mongoose.Document {
   users: IUser[];
   playback?: ITrack;
   queue?: ITrack[];
+  suggestions?: ITrack[];
 }
