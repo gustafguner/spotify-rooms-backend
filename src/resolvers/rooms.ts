@@ -15,6 +15,8 @@ import {
   QueryToUsersInRoomResolver,
   SubscriptionToUserEnteredRoomResolver,
   SubscriptionToUserLeftRoomResolver,
+  MutationToUpdateRoomResolver,
+  SubscriptionToRoomResolver,
 } from '../typings/generated-graphql-schema-types';
 import { PubSub, withFilter } from 'graphql-subscriptions';
 import Room from '../models/room';
@@ -196,6 +198,34 @@ const createRoom: MutationToCreateRoomResolver = async (
   const [err, createdRoom] = await to(room.save());
 
   return err === null ? createdRoom : null;
+};
+
+const updateRoom: MutationToUpdateRoomResolver = async (
+  root,
+  { input },
+  { user },
+) => {
+  if (!user) return false;
+
+  let [err, room] = await to(Room.findById(input.id).exec());
+
+  if (!room || err) {
+    return false;
+  }
+
+  Object.assign(room, input);
+
+  [err] = await to(room.save());
+
+  if (!err) {
+    pubsub.publish('ROOM', {
+      room: input,
+      roomId: room.id,
+    });
+    return true;
+  }
+
+  return false;
 };
 
 const addTrackToQueue: MutationToAddTrackToQueueResolver = async (
@@ -390,6 +420,15 @@ const subscribeToTrackRemovedFromQueue: SubscriptionToTrackRemovedFromQueueResol
   ),
 };
 
+const subscribeToRoom: SubscriptionToRoomResolver = {
+  subscribe: withFilter(
+    () => pubsub.asyncIterator('ROOM'),
+    (payload, { roomId }) => {
+      return payload.roomId == roomId;
+    },
+  ),
+};
+
 const subscribeToPlayback: SubscriptionToPlaybackResolver = {
   subscribe: withFilter(
     () => pubsub.asyncIterator('PLAYBACK'),
@@ -426,11 +465,13 @@ export {
   playback,
   queue,
   createRoom,
+  updateRoom,
   addTrackToQueue,
   voteForTrack,
   subscribeToTrackAddedToQueue,
   subscribeToTrackVotedOnInQueue,
   subscribeToTrackRemovedFromQueue,
+  subscribeToRoom,
   subscribeToPlayback,
   subscribeToUserEnteredRoom,
   subscribeToUserLeftRoom,

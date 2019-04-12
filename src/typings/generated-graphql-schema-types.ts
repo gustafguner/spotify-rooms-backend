@@ -69,6 +69,7 @@ export interface SpotifyImage {
 
 export interface Mutation {
   createRoom?: Room;
+  updateRoom: boolean;
   addTrackToQueue: Track;
   voteForTrack: boolean;
   enterRoom: boolean;
@@ -76,6 +77,13 @@ export interface Mutation {
 }
 
 export interface CreateRoomInput {
+  name: string;
+  mode: string;
+  private: boolean;
+}
+
+export interface UpdateRoomInput {
+  id: string;
   name: string;
   mode: string;
   private: boolean;
@@ -95,9 +103,16 @@ export interface Subscription {
   trackAddedToQueue?: Track;
   trackVotedOnInQueue?: Track;
   trackRemovedFromQueue?: Track;
+  room?: RoomUpdate;
   playback?: Track;
   userEnteredRoom?: User;
   userLeftRoom?: User;
+}
+
+export interface RoomUpdate {
+  name: string;
+  mode: string;
+  private: boolean;
 }
 
 export interface PlayTrackInput {
@@ -123,6 +138,7 @@ export interface Resolver {
   SpotifyImage?: SpotifyImageTypeResolver;
   Mutation?: MutationTypeResolver;
   Subscription?: SubscriptionTypeResolver;
+  RoomUpdate?: RoomUpdateTypeResolver;
 }
 export interface QueryTypeResolver<TParent = any> {
   user?: QueryToUserResolver<TParent>;
@@ -349,6 +365,7 @@ export interface SpotifyImageToHeightResolver<TParent = any, TResult = any> {
 
 export interface MutationTypeResolver<TParent = any> {
   createRoom?: MutationToCreateRoomResolver<TParent>;
+  updateRoom?: MutationToUpdateRoomResolver<TParent>;
   addTrackToQueue?: MutationToAddTrackToQueueResolver<TParent>;
   voteForTrack?: MutationToVoteForTrackResolver<TParent>;
   enterRoom?: MutationToEnterRoomResolver<TParent>;
@@ -360,6 +377,13 @@ export interface MutationToCreateRoomArgs {
 }
 export interface MutationToCreateRoomResolver<TParent = any, TResult = any> {
   (parent: TParent, args: MutationToCreateRoomArgs, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface MutationToUpdateRoomArgs {
+  input: UpdateRoomInput;
+}
+export interface MutationToUpdateRoomResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: MutationToUpdateRoomArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface MutationToAddTrackToQueueArgs {
@@ -394,6 +418,7 @@ export interface SubscriptionTypeResolver<TParent = any> {
   trackAddedToQueue?: SubscriptionToTrackAddedToQueueResolver<TParent>;
   trackVotedOnInQueue?: SubscriptionToTrackVotedOnInQueueResolver<TParent>;
   trackRemovedFromQueue?: SubscriptionToTrackRemovedFromQueueResolver<TParent>;
+  room?: SubscriptionToRoomResolver<TParent>;
   playback?: SubscriptionToPlaybackResolver<TParent>;
   userEnteredRoom?: SubscriptionToUserEnteredRoomResolver<TParent>;
   userLeftRoom?: SubscriptionToUserLeftRoomResolver<TParent>;
@@ -423,6 +448,14 @@ export interface SubscriptionToTrackRemovedFromQueueResolver<TParent = any, TRes
   subscribe: (parent: TParent, args: SubscriptionToTrackRemovedFromQueueArgs, context: any, info: GraphQLResolveInfo) => AsyncIterator<TResult>;
 }
 
+export interface SubscriptionToRoomArgs {
+  roomId: string;
+}
+export interface SubscriptionToRoomResolver<TParent = any, TResult = any> {
+  resolve?: (parent: TParent, args: SubscriptionToRoomArgs, context: any, info: GraphQLResolveInfo) => TResult;
+  subscribe: (parent: TParent, args: SubscriptionToRoomArgs, context: any, info: GraphQLResolveInfo) => AsyncIterator<TResult>;
+}
+
 export interface SubscriptionToPlaybackArgs {
   roomId: string;
 }
@@ -445,4 +478,22 @@ export interface SubscriptionToUserLeftRoomArgs {
 export interface SubscriptionToUserLeftRoomResolver<TParent = any, TResult = any> {
   resolve?: (parent: TParent, args: SubscriptionToUserLeftRoomArgs, context: any, info: GraphQLResolveInfo) => TResult;
   subscribe: (parent: TParent, args: SubscriptionToUserLeftRoomArgs, context: any, info: GraphQLResolveInfo) => AsyncIterator<TResult>;
+}
+
+export interface RoomUpdateTypeResolver<TParent = any> {
+  name?: RoomUpdateToNameResolver<TParent>;
+  mode?: RoomUpdateToModeResolver<TParent>;
+  private?: RoomUpdateToPrivateResolver<TParent>;
+}
+
+export interface RoomUpdateToNameResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface RoomUpdateToModeResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface RoomUpdateToPrivateResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
