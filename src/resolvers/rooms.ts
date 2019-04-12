@@ -44,13 +44,14 @@ const room: QueryToRoomResolver = async (root, { roomId }, { user }) => {
       .populate('queue.voters')
       .exec(),
   );
-  const position = room.playback.id
-    ? Date.now() - room.playback.playTimestamp.getTime()
-    : 0;
 
   if (err) {
     throw new Error('Unexpected server error');
   }
+
+  const position = room.playback.id
+    ? Date.now() - room.playback.playTimestamp.getTime()
+    : 0;
 
   room.playback.position = position;
 

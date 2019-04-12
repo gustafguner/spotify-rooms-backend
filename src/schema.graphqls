@@ -46,6 +46,8 @@ type Room {
   id: ID!
   name: String!
   host: User!
+  mode: String!
+  private: Boolean!
   users: [User]
   playback: Track
   queue: [Track]

@@ -36,6 +36,8 @@ export interface Room {
   id: string;
   name: string;
   host: User;
+  mode: string;
+  private: boolean;
   users?: Array<User | null>;
   playback?: Track;
   queue?: Array<Track | null>;
@@ -222,6 +224,8 @@ export interface RoomTypeResolver<TParent = any> {
   id?: RoomToIdResolver<TParent>;
   name?: RoomToNameResolver<TParent>;
   host?: RoomToHostResolver<TParent>;
+  mode?: RoomToModeResolver<TParent>;
+  private?: RoomToPrivateResolver<TParent>;
   users?: RoomToUsersResolver<TParent>;
   playback?: RoomToPlaybackResolver<TParent>;
   queue?: RoomToQueueResolver<TParent>;
@@ -236,6 +240,14 @@ export interface RoomToNameResolver<TParent = any, TResult = any> {
 }
 
 export interface RoomToHostResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface RoomToModeResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface RoomToPrivateResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
