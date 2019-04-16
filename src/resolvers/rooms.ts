@@ -3,7 +3,6 @@ import {
   QueryToRoomResolver,
   MutationToCreateRoomResolver,
   MutationToAddTrackToQueueResolver,
-  MutationToVoteForTrackResolver,
   SubscriptionToTrackAddedToQueueResolver,
   SubscriptionToTrackVotedOnInQueueResolver,
   SubscriptionToTrackRemovedFromQueueResolver,
@@ -17,6 +16,7 @@ import {
   SubscriptionToUserLeftRoomResolver,
   MutationToUpdateRoomResolver,
   SubscriptionToRoomResolver,
+  MutationToVoteForTrackInQueueResolver,
 } from '../typings/generated-graphql-schema-types';
 import { PubSub, withFilter } from 'graphql-subscriptions';
 import Room from '../models/room';
@@ -43,7 +43,9 @@ const room: QueryToRoomResolver = async (root, { roomId }, { user }) => {
   let [err, room] = await to(
     Room.findById(roomId)
       .populate('host')
+      .populate('dj')
       .populate('queue.voters')
+      .populate('requests.voters')
       .exec(),
   );
 
@@ -154,6 +156,7 @@ const playback: QueryToPlaybackResolver = async (
     Room.findById(roomId)
       .populate('host')
       .populate('queue.voters')
+      .populate('requests.voters')
       .exec(),
   );
   const position = room.playback.id
@@ -180,6 +183,19 @@ const queue: QueryToQueueResolver = async (root, { roomId }, { user }) => {
     throw new Error('Unexpected server error');
   }
   return room.queue;
+};
+
+const requests: QueryToQueueResolver = async (root, { roomId }, { user }) => {
+  const [err, room] = await to(
+    Room.findById(roomId)
+      .populate('requests.voters')
+      .exec(),
+  );
+
+  if (err || !room) {
+    throw new Error('Unexpected server error');
+  }
+  return room.requests;
 };
 
 const createRoom: MutationToCreateRoomResolver = async (
@@ -275,7 +291,11 @@ const addTrackToQueue: MutationToAddTrackToQueueResolver = async (
 
       console.log('Track to add ', trackToAdd.name);
 
-      foundRoom.queue.push(trackToAdd);
+      if (input.queueType === 'queue') {
+        foundRoom.queue.push(trackToAdd);
+      } else {
+        foundRoom.requests.push(trackToAdd);
+      }
 
       [err] = await to(foundRoom.save());
 
@@ -283,13 +303,16 @@ const addTrackToQueue: MutationToAddTrackToQueueResolver = async (
         return false;
       }
 
-      if (!foundRoom.playback.id) {
+      if (!foundRoom.playback.id && input.queueType === 'queue') {
         console.log('play() !!!');
         play(foundRoom._id);
       }
 
       pubsub.publish('TRACK_ADDED_TO_QUEUE', {
-        trackAddedToQueue: trackToAdd,
+        trackAddedToQueue: {
+          track: trackToAdd,
+          queueType: input.queueType,
+        },
         roomId: foundRoom._id,
       });
 
@@ -324,7 +347,10 @@ const play = async (roomId: string) => {
     [err, room] = await to(room.save());
 
     pubsub.publish('TRACK_REMOVED_FROM_QUEUE', {
-      trackRemovedFromQueue: track,
+      trackRemovedFromQueue: {
+        track,
+        queueType: 'queue',
+      },
       roomId,
     });
 
@@ -355,7 +381,7 @@ const play = async (roomId: string) => {
   }
 };
 
-const voteForTrack: MutationToVoteForTrackResolver = async (
+const voteForTrackInQueue: MutationToVoteForTrackInQueueResolver = async (
   root,
   { input },
   { user },
@@ -366,12 +392,16 @@ const voteForTrack: MutationToVoteForTrackResolver = async (
     return false;
   }
 
-  const queueIndex = foundRoom.queue.findIndex((t) => t.id === input.trackId);
+  const queue =
+    input.queueType === 'queue' ? foundRoom.queue : foundRoom.requests;
+
+  const queueIndex = queue.findIndex((t) => t.id === input.trackId);
+
   if (queueIndex === -1) {
     return false;
   }
 
-  const track = foundRoom.queue[queueIndex];
+  const track = queue[queueIndex];
   const i = track.voters.indexOf(user._id);
 
   if (i === -1) {
@@ -380,12 +410,20 @@ const voteForTrack: MutationToVoteForTrackResolver = async (
     track.voters.splice(i, 1);
   }
 
-  foundRoom[queueIndex] = track;
+  if (input.queueType === 'queue') {
+    foundRoom.queue[queueIndex] = track;
+  } else {
+    foundRoom.requests[queueIndex] = track;
+  }
 
   await Room.populate(foundRoom, { path: 'queue.voters' });
+  await Room.populate(foundRoom, { path: 'requests.voters' });
 
   pubsub.publish('TRACK_VOTED_ON_IN_QUEUE', {
-    trackVotedOnInQueue: foundRoom[queueIndex],
+    trackVotedOnInQueue: {
+      track,
+      queueType: input.queueType,
+    },
     roomId: foundRoom._id,
   });
 
@@ -464,10 +502,11 @@ export {
   usersInRoom,
   playback,
   queue,
+  requests,
   createRoom,
   updateRoom,
   addTrackToQueue,
-  voteForTrack,
+  voteForTrackInQueue,
   subscribeToTrackAddedToQueue,
   subscribeToTrackVotedOnInQueue,
   subscribeToTrackRemovedFromQueue,

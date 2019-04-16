@@ -10,6 +10,7 @@ type Query {
   rooms: [Room]
   playback(roomId: ID!): Track
   queue(roomId: ID!): [Track]
+  requests(roomId: ID!): [Track]
   usersInRoom(roomId: ID!): [User]
 }
 
@@ -17,19 +18,24 @@ type Mutation {
   createRoom(input: CreateRoomInput!): Room
   updateRoom(input: UpdateRoomInput!): Boolean!
   addTrackToQueue(input: AddTrackToQueueInput!): Track!
-  voteForTrack(input: VoteForTrackInput!): Boolean!
+  voteForTrackInQueue(input: VoteForTrackInQueueInput!): Boolean!
   enterRoom(roomId: ID!): Boolean!
   leaveRoom(roomId: ID!): Boolean!
 }
 
 type Subscription {
-  trackAddedToQueue(roomId: ID!): Track
-  trackVotedOnInQueue(roomId: ID!): Track
-  trackRemovedFromQueue(roomId: ID!): Track
+  trackAddedToQueue(roomId: ID!): QueueTrackEvent
+  trackVotedOnInQueue(roomId: ID!): QueueTrackEvent
+  trackRemovedFromQueue(roomId: ID!): QueueTrackEvent
   room(roomId: ID!): RoomUpdate
   playback(roomId: ID!): Track
   userEnteredRoom(roomId: ID!): User
   userLeftRoom(roomId: ID!): User
+}
+
+type QueueTrackEvent {
+  track: Track!
+  queueType: String!
 }
 
 type User {
@@ -103,11 +109,13 @@ input UpdateRoomInput {
 input AddTrackToQueueInput {
   roomId: ID!
   trackId: String!
+  queueType: String!
 }
 
-input VoteForTrackInput {
+input VoteForTrackInQueueInput {
   roomId: ID!
   trackId: String!
+  queueType: String!
 }
 
 input PlayTrackInput {

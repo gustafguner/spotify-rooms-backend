@@ -17,6 +17,7 @@ export interface Query {
   rooms?: Array<Room | null>;
   playback?: Track;
   queue?: Array<Track | null>;
+  requests?: Array<Track | null>;
   usersInRoom?: Array<User | null>;
 }
 
@@ -73,7 +74,7 @@ export interface Mutation {
   createRoom?: Room;
   updateRoom: boolean;
   addTrackToQueue: Track;
-  voteForTrack: boolean;
+  voteForTrackInQueue: boolean;
   enterRoom: boolean;
   leaveRoom: boolean;
 }
@@ -94,21 +95,28 @@ export interface UpdateRoomInput {
 export interface AddTrackToQueueInput {
   roomId: string;
   trackId: string;
+  queueType: string;
 }
 
-export interface VoteForTrackInput {
+export interface VoteForTrackInQueueInput {
   roomId: string;
   trackId: string;
+  queueType: string;
 }
 
 export interface Subscription {
-  trackAddedToQueue?: Track;
-  trackVotedOnInQueue?: Track;
-  trackRemovedFromQueue?: Track;
+  trackAddedToQueue?: QueueTrackEvent;
+  trackVotedOnInQueue?: QueueTrackEvent;
+  trackRemovedFromQueue?: QueueTrackEvent;
   room?: RoomUpdate;
   playback?: Track;
   userEnteredRoom?: User;
   userLeftRoom?: User;
+}
+
+export interface QueueTrackEvent {
+  track: Track;
+  queueType: string;
 }
 
 export interface RoomUpdate {
@@ -140,6 +148,7 @@ export interface Resolver {
   SpotifyImage?: SpotifyImageTypeResolver;
   Mutation?: MutationTypeResolver;
   Subscription?: SubscriptionTypeResolver;
+  QueueTrackEvent?: QueueTrackEventTypeResolver;
   RoomUpdate?: RoomUpdateTypeResolver;
 }
 export interface QueryTypeResolver<TParent = any> {
@@ -148,6 +157,7 @@ export interface QueryTypeResolver<TParent = any> {
   rooms?: QueryToRoomsResolver<TParent>;
   playback?: QueryToPlaybackResolver<TParent>;
   queue?: QueryToQueueResolver<TParent>;
+  requests?: QueryToRequestsResolver<TParent>;
   usersInRoom?: QueryToUsersInRoomResolver<TParent>;
 }
 
@@ -181,6 +191,13 @@ export interface QueryToQueueArgs {
 }
 export interface QueryToQueueResolver<TParent = any, TResult = any> {
   (parent: TParent, args: QueryToQueueArgs, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface QueryToRequestsArgs {
+  roomId: string;
+}
+export interface QueryToRequestsResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: QueryToRequestsArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface QueryToUsersInRoomArgs {
@@ -379,7 +396,7 @@ export interface MutationTypeResolver<TParent = any> {
   createRoom?: MutationToCreateRoomResolver<TParent>;
   updateRoom?: MutationToUpdateRoomResolver<TParent>;
   addTrackToQueue?: MutationToAddTrackToQueueResolver<TParent>;
-  voteForTrack?: MutationToVoteForTrackResolver<TParent>;
+  voteForTrackInQueue?: MutationToVoteForTrackInQueueResolver<TParent>;
   enterRoom?: MutationToEnterRoomResolver<TParent>;
   leaveRoom?: MutationToLeaveRoomResolver<TParent>;
 }
@@ -405,11 +422,11 @@ export interface MutationToAddTrackToQueueResolver<TParent = any, TResult = any>
   (parent: TParent, args: MutationToAddTrackToQueueArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface MutationToVoteForTrackArgs {
-  input: VoteForTrackInput;
+export interface MutationToVoteForTrackInQueueArgs {
+  input: VoteForTrackInQueueInput;
 }
-export interface MutationToVoteForTrackResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: MutationToVoteForTrackArgs, context: any, info: GraphQLResolveInfo): TResult;
+export interface MutationToVoteForTrackInQueueResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: MutationToVoteForTrackInQueueArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface MutationToEnterRoomArgs {
@@ -490,6 +507,19 @@ export interface SubscriptionToUserLeftRoomArgs {
 export interface SubscriptionToUserLeftRoomResolver<TParent = any, TResult = any> {
   resolve?: (parent: TParent, args: SubscriptionToUserLeftRoomArgs, context: any, info: GraphQLResolveInfo) => TResult;
   subscribe: (parent: TParent, args: SubscriptionToUserLeftRoomArgs, context: any, info: GraphQLResolveInfo) => AsyncIterator<TResult>;
+}
+
+export interface QueueTrackEventTypeResolver<TParent = any> {
+  track?: QueueTrackEventToTrackResolver<TParent>;
+  queueType?: QueueTrackEventToQueueTypeResolver<TParent>;
+}
+
+export interface QueueTrackEventToTrackResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface QueueTrackEventToQueueTypeResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface RoomUpdateTypeResolver<TParent = any> {
