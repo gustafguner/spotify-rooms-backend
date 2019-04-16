@@ -36,12 +36,13 @@ export interface Room {
   id: string;
   name: string;
   host: User;
+  dj?: User;
   mode: string;
   private: boolean;
   users?: Array<User | null>;
   playback?: Track;
   queue?: Array<Track | null>;
-  suggestions?: Array<Track | null>;
+  requests?: Array<Track | null>;
 }
 
 export interface Track {
@@ -241,12 +242,13 @@ export interface RoomTypeResolver<TParent = any> {
   id?: RoomToIdResolver<TParent>;
   name?: RoomToNameResolver<TParent>;
   host?: RoomToHostResolver<TParent>;
+  dj?: RoomToDjResolver<TParent>;
   mode?: RoomToModeResolver<TParent>;
   private?: RoomToPrivateResolver<TParent>;
   users?: RoomToUsersResolver<TParent>;
   playback?: RoomToPlaybackResolver<TParent>;
   queue?: RoomToQueueResolver<TParent>;
-  suggestions?: RoomToSuggestionsResolver<TParent>;
+  requests?: RoomToRequestsResolver<TParent>;
 }
 
 export interface RoomToIdResolver<TParent = any, TResult = any> {
@@ -258,6 +260,10 @@ export interface RoomToNameResolver<TParent = any, TResult = any> {
 }
 
 export interface RoomToHostResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface RoomToDjResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
@@ -281,7 +287,7 @@ export interface RoomToQueueResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface RoomToSuggestionsResolver<TParent = any, TResult = any> {
+export interface RoomToRequestsResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 

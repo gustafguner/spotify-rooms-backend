@@ -31,10 +31,11 @@ export const RoomSchema = new mongoose.Schema({
   mode: { type: String, required: true },
   private: { type: Boolean, required: true },
   host: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  dj: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   users: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }] },
   playback: Track,
   queue: [Track],
-  suggestions: [Track],
+  requests: [Track],
 });
 
 const Room = mongoose.model<IRoom>('Room', RoomSchema);

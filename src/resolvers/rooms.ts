@@ -192,6 +192,7 @@ const createRoom: MutationToCreateRoomResolver = async (
   const room = new Room({
     ...input,
     host: user._id,
+    dj: user._id,
   });
 
   const [err, createdRoom] = await to(room.save());

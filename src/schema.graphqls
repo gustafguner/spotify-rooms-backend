@@ -48,12 +48,13 @@ type Room {
   id: ID!
   name: String!
   host: User!
+  dj: User
   mode: String!
   private: Boolean!
   users: [User]
   playback: Track
   queue: [Track]
-  suggestions: [Track]
+  requests: [Track]
 }
 
 type Track {
