@@ -75,6 +75,7 @@ export interface Mutation {
   updateRoom: boolean;
   addTrackToQueue: Track;
   voteForTrackInQueue: boolean;
+  acceptRequestedTrack: boolean;
   enterRoom: boolean;
   leaveRoom: boolean;
 }
@@ -102,6 +103,11 @@ export interface VoteForTrackInQueueInput {
   roomId: string;
   trackId: string;
   queueType: string;
+}
+
+export interface AcceptRequestedTrackInput {
+  roomId: string;
+  trackId: string;
 }
 
 export interface Subscription {
@@ -397,6 +403,7 @@ export interface MutationTypeResolver<TParent = any> {
   updateRoom?: MutationToUpdateRoomResolver<TParent>;
   addTrackToQueue?: MutationToAddTrackToQueueResolver<TParent>;
   voteForTrackInQueue?: MutationToVoteForTrackInQueueResolver<TParent>;
+  acceptRequestedTrack?: MutationToAcceptRequestedTrackResolver<TParent>;
   enterRoom?: MutationToEnterRoomResolver<TParent>;
   leaveRoom?: MutationToLeaveRoomResolver<TParent>;
 }
@@ -427,6 +434,13 @@ export interface MutationToVoteForTrackInQueueArgs {
 }
 export interface MutationToVoteForTrackInQueueResolver<TParent = any, TResult = any> {
   (parent: TParent, args: MutationToVoteForTrackInQueueArgs, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface MutationToAcceptRequestedTrackArgs {
+  input: AcceptRequestedTrackInput;
+}
+export interface MutationToAcceptRequestedTrackResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: MutationToAcceptRequestedTrackArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface MutationToEnterRoomArgs {

@@ -7,7 +7,7 @@ export interface ITrack {
   voters: string[];
   duration: number;
   queueTimestamp: Date;
-  playTimestamp: Date;
+  playTimestamp?: Date;
   position?: number;
 }
 

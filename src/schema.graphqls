@@ -19,6 +19,7 @@ type Mutation {
   updateRoom(input: UpdateRoomInput!): Boolean!
   addTrackToQueue(input: AddTrackToQueueInput!): Track!
   voteForTrackInQueue(input: VoteForTrackInQueueInput!): Boolean!
+  acceptRequestedTrack(input: AcceptRequestedTrackInput!): Boolean!
   enterRoom(roomId: ID!): Boolean!
   leaveRoom(roomId: ID!): Boolean!
 }
@@ -116,6 +117,11 @@ input VoteForTrackInQueueInput {
   roomId: ID!
   trackId: String!
   queueType: String!
+}
+
+input AcceptRequestedTrackInput {
+  roomId: ID!
+  trackId: String!
 }
 
 input PlayTrackInput {

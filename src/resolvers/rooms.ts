@@ -17,6 +17,7 @@ import {
   MutationToUpdateRoomResolver,
   SubscriptionToRoomResolver,
   MutationToVoteForTrackInQueueResolver,
+  MutationToAcceptRequestedTrackResolver,
 } from '../typings/generated-graphql-schema-types';
 import { PubSub, withFilter } from 'graphql-subscriptions';
 import Room from '../models/room';
@@ -304,7 +305,6 @@ const addTrackToQueue: MutationToAddTrackToQueueResolver = async (
       }
 
       if (!foundRoom.playback.id && input.queueType === 'queue') {
-        console.log('play() !!!');
         play(foundRoom._id);
       }
 
@@ -431,6 +431,73 @@ const voteForTrackInQueue: MutationToVoteForTrackInQueueResolver = async (
   return true;
 };
 
+const acceptRequestedTrack: MutationToAcceptRequestedTrackResolver = async (
+  root,
+  { input },
+  user,
+) => {
+  const [err, foundRoom] = await to(Room.findById(input.roomId).exec());
+  if (!foundRoom || err) {
+    // TODO: Also check that user.id is in users/listeners of the room (i.e. not voting for a track in another room)
+    return false;
+  }
+
+  const requests = foundRoom.requests;
+
+  const requestIndex = requests.findIndex((t) => t.id === input.trackId);
+  if (requestIndex === -1) {
+    return false;
+  }
+
+  const track = requests[requestIndex];
+
+  foundRoom.requests.splice(requestIndex, 1);
+
+  const trackToAdd = {
+    id: track.id,
+    uri: track.uri,
+    name: track.name,
+    artists: track.artists.map((artist) => ({
+      id: artist.id,
+      name: artist.name,
+    })),
+    images: track.images,
+    duration: track.duration,
+    voters: [],
+    queueTimestamp: new Date(),
+  };
+
+  foundRoom.queue.push(trackToAdd);
+
+  pubsub.publish('TRACK_REMOVED_FROM_QUEUE', {
+    trackRemovedFromQueue: {
+      track: trackToAdd,
+      queueType: 'requests',
+    },
+    roomId: foundRoom._id,
+  });
+
+  pubsub.publish('TRACK_ADDED_TO_QUEUE', {
+    trackAddedToQueue: {
+      track: trackToAdd,
+      queueType: 'queue',
+    },
+    roomId: foundRoom._id,
+  });
+
+  const [saveErr] = await to(foundRoom.save());
+
+  if (saveErr) {
+    return false;
+  }
+
+  if (!foundRoom.playback.id) {
+    play(foundRoom._id);
+  }
+
+  return true;
+};
+
 const subscribeToTrackAddedToQueue: SubscriptionToTrackAddedToQueueResolver = {
   subscribe: withFilter(
     () => pubsub.asyncIterator('TRACK_ADDED_TO_QUEUE'),
@@ -507,6 +574,7 @@ export {
   updateRoom,
   addTrackToQueue,
   voteForTrackInQueue,
+  acceptRequestedTrack,
   subscribeToTrackAddedToQueue,
   subscribeToTrackVotedOnInQueue,
   subscribeToTrackRemovedFromQueue,
